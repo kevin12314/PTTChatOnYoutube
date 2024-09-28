@@ -108,6 +108,7 @@ export default {
       description: '',
       optionGroup: GM_getValue('AnySearchOption', [
         'C_Chat,/間直播單,Z20',
+        'C_Chat,/間直播單',
         'vtuber,/彩虹直播'
       ]),
       recentGroup: GM_getValue('AnySearchRecent', []),

@@ -182,6 +182,7 @@ export default {
     }
     // 定時抓新聊天
     this.intervalChat = window.setInterval(() => {
+      // debugger
       if (this.isStream && this.pttState > 0 && Date.now() > this.nextUpdateTime) {
         this.nextUpdateTime = Date.now() + 60 * 1000
         if (showAllLog) console.log('定時抓新聊天', this.nextUpdateTime)

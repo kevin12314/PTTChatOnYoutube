@@ -71,7 +71,10 @@ export default function InitHD (messageposter, siteName) {
           iconPTT.css('display', 'none')
           $('#pttchatparent').css('flex', '0 0 0px')
           GM_setValue('PluginTypeHolodex', '0')
-          mainTimer = setInterval(appendPttEmbedBtn, 1000)
+          mainTimer = window.setInterval(() => {
+            console.log(new Date())
+            appendPttEmbedBtn()
+          }, 1000)
         }
         initPttChatStyle()
         if (reportMode) console.log('display mode changed')

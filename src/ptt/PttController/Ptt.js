@@ -15,10 +15,10 @@ import RecieveData from '../MessagePosterData/RecieveData.js'
  */
 export function Ptt (msg) {
   if (typeof Ptt.cache === 'object') {
-    if (showAllLog)console.log('return Ptt cache')
+    if (showAllLog) console.log('return Ptt cache')
     return Ptt.cache
   }
-  if (showAllLog)console.log('instance Ptt')
+  if (showAllLog) console.log('instance Ptt')
   this.msg = msg
   this.window = window // 自動
 
@@ -49,7 +49,7 @@ export function Ptt (msg) {
 
   /** @type {PttAddTask} */
   this.addTask = function (newTask, ...args) {
-    if (reportMode)console.log('this.addTask, now:', this.taskManager.nowTask, 'list:', this.taskManager.taskList)
+    if (reportMode) console.log('this.addTask, now:', this.taskManager.nowTask, 'list:', this.taskManager.taskList)
     this.taskManager.add(newTask, ...args)
     if (!this.taskManager.nowTask) {
       this.runTask()
@@ -64,16 +64,21 @@ export function Ptt (msg) {
     }
     this.state.isInsertedText = ''
     if (!this.state.lock) this.lock()
-    if (showAllLog)console.log('runTask', task)
+    if (showAllLog) console.log('runTask', task)
     const NormalState = PttCheckState.apply(this)
+    console.log('NormalState', NormalState)
     if (NormalState) {
       this.state.lastUpdateTime = Date.now()
-      if (showAllLog)console.log(task, task.fn, typeof task.fn)
+      console.log('this.state.lastUpdateTime', new Date())
+      if (showAllLog) console.log(task, task.fn, typeof task.fn)
       task.fn.apply(this, task.args)
       this.randomInsert()
-      if (showAllLog)console.log('this.PttAliveInterval', this.PttAliveInterval)
+      if (showAllLog) console.log('this.PttAliveInterval', this.PttAliveInterval)
       if (!this.PttAliveInterval) {
-        this.PttAliveInterval = setInterval(checkPttAlive.bind(this), 3500)
+        // this.PttAliveInterval =  setInterval(checkPttAlive.bind(this), 3500)
+        this.PttAliveInterval = window.setInterval(() => {
+          checkPttAlive.apply(this)
+        }, 3500)
       }
     }
   }

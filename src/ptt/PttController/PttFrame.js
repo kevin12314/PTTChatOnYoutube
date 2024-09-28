@@ -22,6 +22,7 @@ export function PttFrame () {
       { reg: /目前顯示: 第/, state: FrameState.otherPageofPost }
     ],
     update: () => {
+      debugger
       for (let i = 0; i < this.frame.filters.length; i++) {
         const filter = this.frame.filters[i]
         const result = this.match(filter.reg)

@@ -1,15 +1,17 @@
 const webpack = require('webpack')
-const mergeConfig = require('webpack-merge')
-const commonConfig = require('./webpack.common')
-const WebpackUserscript = require('webpack-userscript')
 
-module.exports = mergeConfig(commonConfig, {
+const commonConfig = require('./webpack.common')
+const { default: UserscriptPlugin } = require('webpack-userscript')
+const meteadata = require('./metadata.build.js')
+const { default: merge } = require('webpack-merge')
+
+module.exports = merge(commonConfig, {
   mode: 'production',
   entry: './src/main.js',
   plugins: [
-    new WebpackUserscript({
+    new UserscriptPlugin({
       metajs: false,
-      headers: './configs/metadata.build.js'
+      headers: meteadata
     }),
     new webpack.DefinePlugin({
       reportMode: false,

@@ -1,33 +1,38 @@
 const webpack = require('webpack')
 const path = require('path')
-const mergeConfig = require('webpack-merge')
 const commonConfig = require('./webpack.common')
-const WebpackUserscript = require('webpack-userscript')
+const { default: UserscriptPlugin } = require('webpack-userscript')
+const meteadata = require('./metadata.dev.js')
+const { default: merge } = require('webpack-merge')
 
-module.exports = mergeConfig(commonConfig, {
+module.exports = merge(commonConfig, {
   mode: 'development',
   entry: './src/main.js',
-  devtool: 'cheap-module-eval-source-map',
+  devtool: 'eval-cheap-module-source-map',
   devServer: {
-    contentBase: path.resolve(__dirname, '../'),
-    https: true,
+    static: {
+      directory: path.resolve(__dirname, '../'),
+      watch: {
+        ignored: /node_modules/, // otherwise it takes a lot of time to refresh
+        usePolling: true // or use an integer for a check every x milliseconds, e.g. poll: 1000,
+      }
+
+    },
+    // contentBase: path.resolve(__dirname, '../'),
+    server: 'https',
     hot: true,
-    inline: true,
-    allowedHosts: [
-      '.blank.org' // example site
-    ],
-    disableHostCheck: true,
-    open: true,
-    openPage: 'dist/main.user.js',
-    watchOptions: {
-      poll: true, // or use an integer for a check every x milliseconds, e.g. poll: 1000,
-      ignored: /node_modules/ // otherwise it takes a lot of time to refresh
-    }
+    allowedHosts: 'all',
+    open: ['dist/main.user.js']
+    // watchOptions: {
+    //   poll: true, // or use an integer for a check every x milliseconds, e.g. poll: 1000,
+    //   ignored: /node_modules/ // otherwise it takes a lot of time to refresh
+    // }
   },
   plugins: [
-    new WebpackUserscript({
+    new UserscriptPlugin({
       metajs: false,
-      headers: './configs/metadata.dev.js'
+      // headers: './configs/metadata.dev.js'
+      headers: meteadata
     }),
     new webpack.DefinePlugin({
       reportMode: true,

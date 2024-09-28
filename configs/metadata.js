@@ -1,9 +1,9 @@
 const pkg = require('../package.json')
 module.exports = {
   license: pkg.license,
-  'name:zh-TW': 'Youtube聊天室顯示PTT推文',
+  name: 'Youtube聊天室顯示PTT推文',
   namespace: 'https://github.com/zoosewu/PTTChatOnYoutube',
-  'description:zh-tw': '連結PTT推文到Youtube聊天室  讓你簡單追實況搭配推文',
+  description: '連結PTT推文到Youtube聊天室  讓你簡單追實況搭配推文',
   match: [
     'https://www.youtube.com/*',
     'https://youtu.be/*',
@@ -30,6 +30,8 @@ module.exports = {
   ],
   'run-at': 'document-idle',
   require: [
+    'https://raw.githubusercontent.com/turuslan/HackTimer/master/HackTimer.js',
+    'https://raw.githubusercontent.com/turuslan/HackTimer/master/HackTimerWorker.js',
     'https://code.jquery.com/jquery-3.5.1.slim.min.js',
     'https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js',
     'https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js',
