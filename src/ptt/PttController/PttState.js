@@ -22,6 +22,7 @@ export const FrameState = Object.freeze({
  * @property {boolean} serverfull
  * @property {number} reconnectTime
  * @property {boolean} deleteOtherConnection
+ * @property {boolean} tabInBackGround
  */
 
 /**
@@ -41,6 +42,7 @@ export function PttState () {
     serverfull: false,
     reconnectTime: 10,
     deleteOtherConnection: false,
-    isInsertedText: ''
+    isInsertedText: '',
+    tabInBackGround: false
   }
 }

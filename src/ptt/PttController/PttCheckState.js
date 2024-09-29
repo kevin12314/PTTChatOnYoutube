@@ -20,12 +20,16 @@ function Reconnect () {
  */
 export function checkPttAlive () {
   const now = Date.now()
-  if (now > this.state.lastUpdateTime + 10000) {
-    this.msg.PostMessage('alert', { type: 0, msg: 'Ptt無回應，請稍後再試，或重新啟動PTT。' })
-    this.removeAllTasks()
-    this.command.remove()
+  if (this.state.tabInBackGround) {
+    this.state.lastUpdateTime = now
   } else {
-    this.msg.PostMessage('alert', { type: 1, msg: '指令執行中......' })
+    if (now > this.state.lastUpdateTime + 10000) {
+      this.msg.PostMessage('alert', { type: 0, msg: 'Ptt無回應，請稍後再試，或重新啟動PTT。' })
+      this.removeAllTasks()
+      this.command.remove()
+    } else {
+      this.msg.PostMessage('alert', { type: 1, msg: '指令執行中......' })
+    }
   }
 }
 

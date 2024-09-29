@@ -115,4 +115,11 @@ export function Ptt (msg) {
     this.state.isInsertedText = str
   }
   Ptt.cache = this
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      this.state.tabInBackGround = false
+    } else {
+      this.state.tabInBackGround = true
+    }
+  })
 }
