@@ -1,5 +1,5 @@
 Vue.component('ChatItemMsg', {
-  props: { msgs: { type: String, required: true }, style: { type: Object, required: true } },
+  props: { msgs: { type: String, required: true }, textStyle: { type: Object, required: true } },
   data () {
     return {
       parsedmsg: []
@@ -14,7 +14,7 @@ Vue.component('ChatItemMsg', {
       'previewImage'
     ])
   },
-  beforeDestroy () {
+  beforeUnmount () {
     this.msgList.forEach(element => { if (element.islink && this.previewImage === element.string) this.$store.dispatch('previewImage', '') })
   },
   render: function (createElement) {
@@ -26,7 +26,7 @@ Vue.component('ChatItemMsg', {
           'mb-0': true,
           'mx-2': true
         },
-        style: this.style
+        style: this.textStyle
       },
       this.msgList.map(data => {
         if (!data.islink) return data.string

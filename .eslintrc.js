@@ -9,6 +9,10 @@ module.exports = {
     parser: 'babel-eslint'
   },
   ignorePatterns: ['node_modules/*', 'dist/*', 'local/*'],
+  rules: {
+    // Keep legacy single-word SFC names to avoid broad renames in this codebase.
+    'vue/multi-word-component-names': 'off'
+  },
   globals: {
     $: 'readonly',
     Vue: 'readonly',

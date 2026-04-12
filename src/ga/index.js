@@ -7,7 +7,13 @@ export default function ga () {
     head.appendChild(gtmhead)
   }
   const noscript = document.createElement('noscript')
-  noscript.innerHTML = '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MFFJTMF"  height="0" width="0" style="display:none;visibility:hidden"></iframe>'
+  const iframe = document.createElement('iframe')
+  iframe.src = 'https://www.googletagmanager.com/ns.html?id=GTM-MFFJTMF'
+  iframe.height = '0'
+  iframe.width = '0'
+  iframe.style.display = 'none'
+  iframe.style.visibility = 'hidden'
+  noscript.appendChild(iframe)
   const body = document.getElementsByTagName('body')[0]
   if (body) {
     body.appendChild(noscript)

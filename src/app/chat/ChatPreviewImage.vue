@@ -63,7 +63,7 @@ export default {
       self.mousey = e.pageY
     })
   },
-  beforeDestroy () { $('body').off('mousemove') },
+  beforeUnmount () { $('body').off('mousemove') },
   methods: {
     getWidth: function () {
       if (this.preview) this.w = this.$refs.imgel.width

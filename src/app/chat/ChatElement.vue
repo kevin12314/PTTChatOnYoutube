@@ -32,8 +32,6 @@
 </template>
 
 <script>
-/* eslint-disable-next-line no-unused-vars */
-import ChatElementMessage from './ChatElementMessage'
 import { paddingLeft } from 'src/library'
 
 export default {

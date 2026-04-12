@@ -2,9 +2,8 @@ import ChatPreviewImage from './ChatPreviewImage.vue'
 import ChatScrollBtn from './ChatScrollButton.vue'
 import ChatElement from './ChatElement.vue'
 import ChatSetNewComment from './ChatSetNewComment.vue'
-
-Vue.component('DynamicScroller', VueVirtualScroller.DynamicScroller)
-Vue.component('DynamicScrollerItem', VueVirtualScroller.DynamicScrollerItem)
+import { h } from 'vue'
+import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 
 export default {
   inject: ['msg', 'isStream'],
@@ -62,17 +61,40 @@ export default {
     },
     scrollToChat: function () {
       const list = this.$refs.chatmain
+      if (!list) return
       const scroller = list.$refs.scroller
-      const accumulator = this.activeChat > 0 ? scroller.sizes[this.activeChat - 1].accumulator : 0
-      const clientHeight = list.$el.clientHeight
-      let scroll = accumulator - clientHeight / 2
-      if (scroll < 0) scroll = 0
-      scroller.$el.scrollTo({
-        top: scroll,
-        behavior: ((Math.abs(scroller.$el.scrollTop - scroll) > clientHeight * 2) ? 'auto' : 'smooth')
-      })
-      this.$store.dispatch('updateLog', { type: 'targetScrollHeight', data: scroll })
-      // scroller.scrollToPosition(scroll);
+      if (!scroller || !scroller.$el) return
+
+      if (this.isStream) {
+        const el = scroller.$el
+        const target = Math.max(el.scrollHeight - el.clientHeight, 0)
+        el.scrollTo({
+          top: target,
+          behavior: ((Math.abs(el.scrollTop - target) > el.clientHeight * 2) ? 'auto' : 'smooth')
+        })
+        this.$store.dispatch('updateLog', { type: 'targetScrollHeight', data: target })
+        return
+      }
+
+      const scrollTarget = typeof list.getItemOffset === 'function'
+        ? Math.max(list.getItemOffset(this.activeChat), 0)
+        : 0
+
+      if (typeof list.scrollToItem === 'function') {
+        list.scrollToItem(this.activeChat, { align: 'center', behavior: 'auto' })
+      } else if (typeof scroller.scrollToItem === 'function') {
+        scroller.scrollToItem(this.activeChat, { align: 'center', behavior: 'auto' })
+      } else {
+        const clientHeight = list.$el.clientHeight
+        let scroll = scrollTarget - clientHeight / 2
+        if (scroll < 0) scroll = 0
+        scroller.$el.scrollTo({
+          top: scroll,
+          behavior: ((Math.abs(scroller.$el.scrollTop - scroll) > clientHeight * 2) ? 'auto' : 'smooth')
+        })
+      }
+
+      this.$store.dispatch('updateLog', { type: 'targetScrollHeight', data: scrollTarget })
     },
     getCurrentChat: function () {
       const chats = this.allchats
@@ -175,10 +197,14 @@ export default {
   },
   mounted () {
     if (showAllLog) console.log('Chat mounted')
+    this.$nextTick(() => this.AddEventHandler())
     // 註冊文章事件
     this.msg.newComment = data => {
       this.$store.dispatch('updatePost', data)
       this.nextUpdateTime = Date.now() + Math.max(this.getCommentInterval, 2.5) * 1000
+      if (this.isAutoScroll) {
+        this.$nextTick(() => this.scrollToChat())
+      }
     }
     // 定時抓新聊天
     this.intervalChat = window.setInterval(() => {
@@ -194,7 +220,7 @@ export default {
     // 定時滾動
     this.intervalScroll = window.setInterval(() => { this.updateChat() }, 500)
   },
-  beforeDestroy () {
+  beforeUnmount () {
     clearInterval(this.intervalChat)
     clearInterval(this.intervalScroll)
   },
@@ -206,23 +232,50 @@ export default {
     // 'dynamic-scroller': DynamicScroller,
     // 'dynamic-scroller-item': DynamicScrollerItem
   },
-  template: `<div id="PTTChat-contents-Chat-main" class="h-100 d-flex flex-column">
-  <dynamic-scroller ref="chatmain"
-    style="overscroll-behavior: none;overflow-y: scroll;overflow-x:hidden;height: 100%;"
-    @hook:mounted="AddEventHandler" :items="allchats" :min-item-size="defaultElClientHeight" class="scroller"
-    key-field="uid">
-    <template v-slot="{ item, index, active }">
-      <dynamic-scroller-item :item="item" :active="active" :index="item.id"
-        :size-dependencies="[item.msg,defaultElClientHeight]">
-        <chat-element :item="item" :index="index" :key="index" :msg-style="elMsgStyle" :info-style="elInfoStyle"
-          :space-style="elSpaceStyle" :active-chat="activeChat" @updategray="updateGray"></chat-element>
-      </dynamic-scroller-item>
-    </template>
-  </dynamic-scroller>
-  <chat-set-new-comment />
-  <chat-preview-image></chat-preview-image>
-  <chat-scroll-btn :is-auto-scroll="isAutoScroll" @autoscrollclick="EnableAutoScroll()"></chat-scroll-btn>
-</div>`
+  render () {
+    return h('div', {
+      id: 'PTTChat-contents-Chat-main',
+      class: 'h-100 d-flex flex-column'
+    }, [
+      h(DynamicScroller, {
+        ref: 'chatmain',
+        style: {
+          overscrollBehavior: 'none',
+          overflowY: 'scroll',
+          overflowX: 'hidden',
+          height: '100%'
+        },
+        items: this.allchats,
+        minItemSize: this.defaultElClientHeight,
+        class: 'scroller',
+        keyField: 'uid'
+      }, {
+        default: ({ item, index, active }) => h(DynamicScrollerItem, {
+          item,
+          active,
+          index: item.id,
+          sizeDependencies: [item.msg, this.defaultElClientHeight]
+        }, {
+          default: () => h(ChatElement, {
+            item,
+            index,
+            key: index,
+            msgStyle: this.elMsgStyle,
+            infoStyle: this.elInfoStyle,
+            spaceStyle: this.elSpaceStyle,
+            activeChat: this.activeChat,
+            onUpdategray: this.updateGray
+          })
+        })
+      }),
+      h(ChatSetNewComment),
+      h(ChatPreviewImage),
+      h(ChatScrollBtn, {
+        isAutoScroll: this.isAutoScroll,
+        onAutoscrollclick: this.EnableAutoScroll
+      })
+    ])
+  }
 }
 const testchat = {
   l: [],

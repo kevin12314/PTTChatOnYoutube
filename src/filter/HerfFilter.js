@@ -71,7 +71,7 @@ export default function HerfFilter (msg, filters) {
     for (let i = 0; i < filters.length; i++) {
       const filter = filters[i]
       if (filter.siteRegExp.exec(window.location.href) === null) continue
-      if (!isTopframe) throw throwstring(filter.siteName) // check script work in right frame
+      if (!isTopframe) return // not top frame, skip initialization
       InitializeWebsite(msg, filter)
       break
     }

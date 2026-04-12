@@ -6,15 +6,15 @@ PTTChatOnYoutube - Youtube聊天室顯示PTT推文
 
 ## 如何開始參與開發
 
-在專案底下輸入 ```npm install``` 安裝開發環境
+在專案底下輸入 ```pnpm install``` 安裝開發環境
 
 推薦使用violentmonkey，並使用chrome開發，Firefox無法載入本地檔案
 
-在專案底下輸入 ```npm run dev```，每次腳本存檔都會自動更新腳本
+在專案底下輸入 ```pnpm run dev```，每次腳本存檔都會自動更新腳本
 
-在專案底下輸入 ```npm run watch-scss```，每次css存檔都會自動更新腳本
+在專案底下輸入 ```pnpm run watch-scss```，每次css存檔都會自動更新腳本
 
-如果需要追蹤scss，可以使用 ```npm run watch-scss-map```就會生成帶map檔的css，但是限定http使用。
+如果需要追蹤scss，可以使用 ```pnpm run watch-scss-map```就會生成帶map檔的css，但是限定http使用。
 
 腳本更新依照下面步驟操作之後存檔完在violentmonkey設定那邊按一下更新就能測試
 
@@ -22,9 +22,9 @@ PTTChatOnYoutube - Youtube聊天室顯示PTT推文
 
 ### Coding Style:
 
-程式碼使用StandardJS及eslint-plugin-vue確保程式碼風格，並且會在commit之前做檢查，可以手動執行```npm run lint```確認有沒有錯誤及警告。
+程式碼使用StandardJS及eslint-plugin-vue確保程式碼風格，並且會在commit之前做檢查，可以手動執行```pnpm run lint```確認有沒有錯誤及警告。
 
-安裝eslint以在pre-commit前檢查```npm i -g eslint```
+安裝eslint以在pre-commit前檢查```pnpm add -g eslint```
 
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
 

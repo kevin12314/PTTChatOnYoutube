@@ -1,9 +1,9 @@
 import { state, mutations } from './mutations'
 import { getters } from './getters'
 import { actions } from './actions'
-Vue.use(Vuex)
+import { createStore } from 'vuex'
 
-export const store = new Vuex.Store({
+export const store = createStore({
   state,
   mutations,
   getters,

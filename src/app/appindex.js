@@ -1,5 +1,7 @@
 import PttApp from './PttApp.vue'
 import PttAppButton from './PttAppButton.vue'
+import { createApp, h, markRaw } from 'vue'
+import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import { store } from './store/store'
 let appinscount = 0
 /**
@@ -19,6 +21,43 @@ export default function InitApp (
   // generate crypt key everytime;
   InitChatApp(chatContainer)
   function InitChatApp (cn) {
+    function getYoutubePlayerResponse () {
+      // movie_player.getPlayerResponse() is updated on every video load including SPA navigation.
+      // ytInitialPlayerResponse is only set on full page load (server-side), not on SPA navigation.
+      try {
+        const moviePlayer = document.getElementById('movie_player')
+        if (moviePlayer && typeof moviePlayer.getPlayerResponse === 'function') {
+          const response = moviePlayer.getPlayerResponse()
+          if (response && response.microformat) return response
+        }
+      } catch (e) { /* ignore */ }
+      const globalWindow = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window
+      return globalWindow.ytInitialPlayerResponse || window.ytInitialPlayerResponse
+    }
+
+    function parseDateSafe (value) {
+      if (!value) return null
+      const parsedDate = new Date(value)
+      return Number.isNaN(parsedDate.valueOf()) ? null : parsedDate
+    }
+
+    function getYoutubeTimeline () {
+      const playerResponse = getYoutubePlayerResponse()
+      if (!playerResponse) return {}
+
+      const microformat = playerResponse.microformat && playerResponse.microformat.playerMicroformatRenderer
+      const liveBroadcastDetails = microformat && microformat.liveBroadcastDetails
+
+      const startDate = parseDateSafe(
+        (liveBroadcastDetails && liveBroadcastDetails.startTimestamp) ||
+        (microformat && microformat.publishDate) ||
+        (microformat && microformat.uploadDate)
+      )
+      const endDate = parseDateSafe(liveBroadcastDetails && liveBroadcastDetails.endTimestamp)
+
+      return { startDate, endDate, playerResponse }
+    }
+
     /* -----------------------------------preInitApp----------------------------------- */
     // init property
     const ele = document.createElement('div')
@@ -32,9 +71,14 @@ export default function InitApp (
     const themewhite = 'pttbgc-19 pttc-5'
     const themedark = 'pttbgc-2 pttc-2'
 
+    const chatHeight = Math.round((cn && cn.height && cn.height()) || (cn && cn[0] && cn[0].clientHeight) || 0)
+    if (store.getters.getPluginHeight <= 0 && chatHeight > 0) {
+      store.dispatch('setPluginHeight', chatHeight)
+      if (showAllLog) console.log('PluginHeight auto initialized from chat container:', chatHeight)
+    }
+
     if (showAllLog)console.log('Instance PTTChatOnYT App, index', appinscount)
-    const PTT = new Vue({
-      el: '#PTTChat',
+    const pttRootOptions = {
       store,
       components: {
         PTTAppBtn: PttAppButton,
@@ -42,7 +86,7 @@ export default function InitApp (
       },
       provide: function () {
         return {
-          msg: this.rootmsg,
+          msg: markRaw(this.rootmsg),
           isStream: isStreaming,
           nowPluginWidth: GM_getValue('PluginWidth', 400)
         }
@@ -50,7 +94,7 @@ export default function InitApp (
       data () {
         return {
           index: appinscount,
-          rootmsg: messagePoster,
+          rootmsg: markRaw(messagePoster),
           player: document.getElementsByTagName('video')[0],
           playertime: null,
           exist: null,
@@ -108,38 +152,95 @@ export default function InitApp (
           const self = document.querySelector('#PTTChat[ins="' + this.index + '"')
           if (!self) {
             if (showAllLog)console.log('Instance ' + this.index + ' destroyed.')
-            PTT.$destroy()
+            app.unmount()
           } else {
             // console.log("Instance " + this.index + " alive.");
           }
         }, 1000)
         this.$store.dispatch('isStream', isStreaming)
         if (!isStreaming) {
-          try {
-            const videoinfo = JSON.parse(document.getElementById('scriptTag').innerHTML)
-            // if (reportMode) console.log('videoinfo', videoinfo)
-            const startDate = new Date(videoinfo.publication[0].startDate)
-            if (reportMode) console.log('startDate', startDate)
-            this.$store.dispatch('updateVideoStartDate', startDate)
-            const endDate = new Date(videoinfo.publication[0].endDate)
-            if (reportMode) console.log('endDate', endDate)
-            this.$store.dispatch('updateLog', { type: 'videoEndTime', data: endDate.toLocaleDateString() + ' ' + endDate.toLocaleTimeString() })
-          } catch (e) {
-            console.log(e)
-          }
+          const self = this
+          let retryCount = 0
+          const maxRetries = 5
+          const retryDelay = 2000
+          ;(function tryFetchVideoTimeline () {
+            try {
+              let foundStart = false
+              let foundEnd = false
+
+              const timeline = getYoutubeTimeline()
+              if (timeline.startDate) {
+                if (reportMode) console.log('startDate from ytInitialPlayerResponse', timeline.startDate)
+                self.$store.dispatch('updateVideoStartDate', timeline.startDate)
+                foundStart = true
+              }
+              if (timeline.endDate) {
+                if (reportMode) console.log('endDate from ytInitialPlayerResponse', timeline.endDate)
+                self.$store.dispatch('updateLog', { type: 'videoEndTime', data: timeline.endDate.toLocaleDateString() + ' ' + timeline.endDate.toLocaleTimeString() })
+                foundEnd = true
+              }
+
+              if (!foundStart) {
+                const scriptTag = document.getElementById('scriptTag')
+                if (!scriptTag || !scriptTag.innerHTML) {
+                  if (reportMode) console.log('skip video publication parse: scriptTag not found')
+                } else {
+                  const videoinfo = JSON.parse(scriptTag.innerHTML)
+                  const publication = videoinfo && videoinfo.publication && videoinfo.publication[0]
+                  if (!publication || !publication.startDate) {
+                    if (reportMode) console.log('skip video publication parse: invalid publication payload', videoinfo)
+                  } else {
+                    const startDate = parseDateSafe(publication.startDate)
+                    const endDate = parseDateSafe(publication.endDate)
+                    if (startDate) {
+                      if (reportMode) console.log('startDate from scriptTag', startDate)
+                      self.$store.dispatch('updateVideoStartDate', startDate)
+                      foundStart = true
+                    }
+                    if (endDate) {
+                      if (reportMode) console.log('endDate from scriptTag', endDate)
+                      self.$store.dispatch('updateLog', { type: 'videoEndTime', data: endDate.toLocaleDateString() + ' ' + endDate.toLocaleTimeString() })
+                      foundEnd = true
+                    }
+                  }
+                }
+              }
+
+              if (!foundStart && retryCount < maxRetries) {
+                retryCount++
+                if (reportMode) console.log('video timeline not ready, retry', retryCount, '/', maxRetries)
+                setTimeout(tryFetchVideoTimeline, retryDelay)
+              }
+            } catch (e) {
+              console.log(e)
+            }
+          })()
         }
         this.rootmsg.pttState = data => { this.$store.dispatch('pttState', data) }
       },
-      beforeDestroy () {
+      beforeUnmount () {
         GM_removeValueChangeListener(this.customPluginSettingListenerId)
         clearInterval(this.playertime)
         clearInterval(this.exist)
       },
+      render () {
+        return h('div', {
+          id: 'PTTChat',
+          class: this.classes,
+          ins: this.index,
+          style: { top: '0px' }
+        }, [
+          h(PttAppButton),
+          h(PttApp)
+        ])
+      }
+    }
 
-      template: `<div id="PTTChat" :class="classes" :ins="index" style="top: 0px;">
-      <PTTAppBtn></PTTAppBtn>
-      <PTTApp></PTTApp>
-    </div>`
-    })
+    const app = createApp(pttRootOptions)
+    app.config.devtools = reportMode
+    app.use(store)
+    app.component('DynamicScroller', DynamicScroller)
+    app.component('DynamicScrollerItem', DynamicScrollerItem)
+    app.mount(ele)
   }
 }

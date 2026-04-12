@@ -8,60 +8,80 @@
       class="nav-item"
       :go="isGotoChat"
     >
-      <a
+      <button
         id="nav-item-Chat"
         ref="chatbtn"
         class="nav-link ptt-text bg-transparent"
+        type="button"
         data-toggle="tab"
-        href="#PTTChat-contents-Chat"
+        data-target="#PTTChat-contents-Chat"
         role="tab"
         aria-controls="PTTChat-contents-Chat"
         aria-selected="false"
-      >聊天室</a>
+        @click="showTab"
+      >
+        聊天室
+      </button>
     </li>
     <li class="nav-item">
-      <a
+      <button
         id="nav-item-Connect"
         class="nav-link ptt-text bg-transparent active"
+        type="button"
         data-toggle="tab"
-        href="#PTTChat-contents-Connect"
+        data-target="#PTTChat-contents-Connect"
         role="tab"
         aria-controls="PTTChat-contents-Connect"
         aria-selected="true"
-      >連線設定</a>
+        @click="showTab"
+      >
+        連線設定
+      </button>
     </li>
     <li class="nav-item">
-      <a
+      <button
         id="nav-item-other"
         class="nav-link ptt-text bg-transparent"
+        type="button"
         data-toggle="tab"
-        href="#PTTChat-contents-other"
+        data-target="#PTTChat-contents-other"
         role="tab"
         aria-controls="PTTChat-contents-other"
         aria-selected="false"
-      >說明</a>
+        @click="showTab"
+      >
+        說明
+      </button>
     </li>
     <li class="nav-item">
-      <a
+      <button
         id="nav-item-PTT"
         class="nav-link ptt-text bg-transparent"
+        type="button"
         data-toggle="tab"
-        href="#PTTChat-contents-PTT"
+        data-target="#PTTChat-contents-PTT"
         role="tab"
         aria-controls="PTTChat-contents-PTT"
         aria-selected="false"
-      >PTT畫面</a>
+        @click="showTab"
+      >
+        PTT畫面
+      </button>
     </li>
     <li class="nav-item">
-      <a
+      <button
         id="nav-item-log"
         class="nav-link ptt-text bg-transparent"
+        type="button"
         data-toggle="tab"
-        href="#PTTChat-contents-log"
+        data-target="#PTTChat-contents-log"
         role="tab"
         aria-controls="PTTChat-contents-log"
         aria-selected="false"
-      >log</a>
+        @click="showTab"
+      >
+        log
+      </button>
     </li>
     <li class="nav-item">
       <button
@@ -95,6 +115,13 @@ export default {
     ...Vuex.mapGetters([
       'gotoChat'
     ])
+  },
+  methods: {
+    showTab: function (event) {
+      event.preventDefault()
+      event.stopPropagation()
+      $(event.currentTarget).tab('show')
+    }
   }
 }
 </script>

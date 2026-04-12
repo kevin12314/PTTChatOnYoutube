@@ -32,15 +32,20 @@ export default {
     }
     window.addEventListener('beforeunload', this.removeiframe)
   },
-  beforeDestroy () {
+  beforeUnmount () {
     window.removeEventListener('beforeunload', this.removeiframe)
   },
   methods: {
     removeiframe: function (event) {
       if (this.msg.ownerorigin === 'https://holodex.net') {
-        document.getElementById('PTTframe').parentElement.remove()
+        const frame = document.getElementById('PTTframe')
+        if (frame && frame.parentElement) {
+          frame.parentElement.remove()
+        }
       } else {
-        this.$el.parentNode.removeChild(this.$el)
+        if (this.$el && this.$el.parentNode) {
+          this.$el.parentNode.removeChild(this.$el)
+        }
       }
     }
   }

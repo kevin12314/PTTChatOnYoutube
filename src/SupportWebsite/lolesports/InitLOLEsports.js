@@ -1,7 +1,6 @@
 
 import InitApp from 'src/app/appindex'
 import ChangeLog from 'src/ChangeLog'
-import { ThemeCheck } from 'src/library'
 
 export default function InitLOLEsports (messageposter, siteName) {
   // Check Theme

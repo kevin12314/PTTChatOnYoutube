@@ -28,17 +28,8 @@ module.exports = {
     'GM_registerMenuCommand',
     'GM_unregisterMenuCommand'
   ],
-  'run-at': 'document-idle',
-  require: [
-    'https://raw.githubusercontent.com/turuslan/HackTimer/master/HackTimer.js',
-    'https://raw.githubusercontent.com/turuslan/HackTimer/master/HackTimerWorker.js',
-    'https://code.jquery.com/jquery-3.5.1.slim.min.js',
-    'https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js',
-    'https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js',
-    'https://cdn.jsdelivr.net/npm/xss@1.0.8/dist/xss.js',
-    'https://cdn.jsdelivr.net/npm/@akryuminfinitum/vue-virtual-scroller@1.0.11-canary.2/dist/vue-virtual-scroller.min.js'
-  ],
+  'run-at': 'document-start',
+  require: [],
   homepageURL:
     'https://github.com/zoosewu/PTTChatOnYoutube/tree/master/homepage',
   downloadURL:

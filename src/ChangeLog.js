@@ -15,6 +15,19 @@ export default function ChangeLog () {
   function AddChangeLogInfo () {
     const changeLogInfo = {}
 
+    changeLogInfo.v_4_0 = new Info()
+    changeLogInfo.v_4_0.Youtube.push('修正 YouTube 頁面中腳本可能誤跑在 iframe 內，導致初始化失敗或按鈕消失的問題。')
+    changeLogInfo.v_4_0.Youtube.push('修正 YouTube 直播與直播存檔的判斷邏輯，避免把直播誤判成一般影片。')
+    changeLogInfo.v_4_0.Youtube.push('修正直播時 PTT 留言不會自動更新、聊天室不會自動捲到底部的問題。')
+    changeLogInfo.v_4_0.Youtube.push('修正直播存檔播放時，無法依照影片目前進度對齊對應 PTT 留言的問題。')
+    changeLogInfo.v_4_0.Youtube.push('修正從 YouTube 首頁以 SPA 方式導航到直播存檔時，開台時間與關台時間無法顯示的問題。')
+    changeLogInfo.v_4_0.Youtube.push('修正點擊套件分頁（聊天室／連線設定／說明／PTT畫面／log）時，會導致 YouTube 頁面重新整理的問題。')
+    changeLogInfo.v_4_0.Youtube.push('修正 YouTube 啟用 Trusted Types 安全政策時，套件因 TrustedHTML 限制而無法正常運作的問題。')
+    changeLogInfo.v_4_0.版本.push('修正登入時可能出現跨網域 SecurityError，導致登入流程失敗的問題。')
+    changeLogInfo.v_4_0.版本.push('修正登入或頁面切換時，DOM 清理可能發生 null removeChild 錯誤的問題。')
+    changeLogInfo.v_4_0.版本.push('調整套件初始高度，未設定時會自動套用目前網站聊天室高度。')
+    changeLogInfo.v_4_0.版本.push('更新前端相容性，改善新版環境下套件按鈕與主介面不顯示的問題。')
+
     changeLogInfo.v_3_1 = new Info()
     changeLogInfo.v_3_1.Youtube.push('修正Youtube實況尚未開始時如果有預告影片會導致套件判斷錯誤的問題(Koyori及Roboko)。')
     changeLogInfo.v_3_1.Youtube.push('修正按鈕會消失的情況。')

@@ -9,12 +9,56 @@
 // @version     1.0
 // @author      -
 // @run-at      document-start
-// @require     https://code.jquery.com/jquery-2.2.4.min.js
-// @require     https://cdn.jsdelivr.net/npm/vue@2.6.14
 // ==/UserScript==
 
-/* the '@match', '@grant', '@require' MUST be same with the headers in 'configs/webpack.build.js' EXCEPT for 'GM_xmlhttpRequest' */
+/* the '@match' and '@grant' MUST be same with the headers in 'configs/webpack.build.js' EXCEPT for 'GM_xmlhttpRequest' */
 /* paste these code on your userscript manager and test it */
+
+;(function initTrustedTypesPolicy () {
+  function createDefaultPolicy (targetWindow) {
+    const trustedTypesApi = targetWindow && targetWindow.trustedTypes
+
+    if (!trustedTypesApi || typeof trustedTypesApi.createPolicy !== 'function') return
+
+    try {
+      trustedTypesApi.createPolicy('default', {
+        createHTML: string => string,
+        createScriptURL: string => string,
+        createScript: string => string
+      })
+    } catch (error) {
+      console.log('Trusted Types default policy already exists or cannot be created.', error)
+    }
+  }
+
+  function injectPagePolicy () {
+    const root = document.documentElement || document.head || document.body
+    if (!root) return
+
+    const script = document.createElement('script')
+    script.textContent = `(function () {
+      var trustedTypesApi = window.trustedTypes
+      if (!trustedTypesApi || typeof trustedTypesApi.createPolicy !== 'function') return
+      try {
+        trustedTypesApi.createPolicy('default', {
+          createHTML: function (string) { return string },
+          createScriptURL: function (string) { return string },
+          createScript: function (string) { return string }
+        })
+      } catch (error) {}
+    })();`
+
+    root.appendChild(script)
+    script.remove()
+  }
+
+  createDefaultPolicy(window)
+
+  if (typeof unsafeWindow !== 'undefined' && unsafeWindow !== window) {
+    createDefaultPolicy(unsafeWindow)
+    injectPagePolicy()
+  }
+})()
 
 GM_xmlhttpRequest({
   method: "GET",
