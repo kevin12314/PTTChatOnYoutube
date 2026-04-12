@@ -55,12 +55,15 @@ export default {
     }
   },
   computed: {
-    ...Vuex.mapGetters(['getDeleteOtherConnect'])
+    ...Vuex.mapGetters(['getDeleteOtherConnect', 'pttState'])
   },
   methods: {
     login: function () {
       if (this.id === '' || this.pw === '') {
         this.$store.dispatch('Alert', { type: 0, msg: '帳號或密碼不得為空。' })
+        return
+      } else if (!this.msg.targetWindow) {
+        this.$store.dispatch('Alert', { type: 0, msg: 'PTT畫面尚未就緒，請切換到「PTT畫面」頁籤稍候再試。' })
         return
       } else if (this.pttState > 0) {
         this.$store.dispatch('Alert', { type: 0, msg: '已經登入，請勿重複登入。' })

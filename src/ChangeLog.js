@@ -23,8 +23,10 @@ export default function ChangeLog () {
     changeLogInfo.v_4_0.Youtube.push('修正從 YouTube 首頁以 SPA 方式導航到直播存檔時，開台時間與關台時間無法顯示的問題。')
     changeLogInfo.v_4_0.Youtube.push('修正點擊套件分頁（聊天室／連線設定／說明／PTT畫面／log）時，會導致 YouTube 頁面重新整理的問題。')
     changeLogInfo.v_4_0.Youtube.push('修正 YouTube 啟用 Trusted Types 安全政策時，套件因 TrustedHTML 限制而無法正常運作的問題。')
+    changeLogInfo.v_4_0.Youtube.push('修正 YouTube 站內以 SPA 方式從直播存檔切換到其他直播或影片時，影片資訊、文章資訊、聊天室內容與登入狀態不會同步更新的問題。')
     changeLogInfo.v_4_0.版本.push('修正登入時可能出現跨網域 SecurityError，導致登入流程失敗的問題。')
     changeLogInfo.v_4_0.版本.push('修正登入或頁面切換時，DOM 清理可能發生 null removeChild 錯誤的問題。')
+    changeLogInfo.v_4_0.版本.push('改善頁面切換後 PTT iframe 重建流程，避免重新登入時按鈕無反應。')
     changeLogInfo.v_4_0.版本.push('調整套件初始高度，未設定時會自動套用目前網站聊天室高度。')
     changeLogInfo.v_4_0.版本.push('更新前端相容性，改善新版環境下套件按鈕與主介面不顯示的問題。')
 

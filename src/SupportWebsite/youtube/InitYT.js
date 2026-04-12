@@ -1,16 +1,157 @@
 import InitApp from 'src/app/appindex'
 import ChangeLog from 'src/ChangeLog'
 import { ThemeCheck } from 'src/library'
+import { store } from 'src/app/store/store'
+import { types } from 'src/app/store/mutations_type'
 
 export default function InitYT (messagePoster, siteName) {
   const msg = messagePoster
+  let lastVideoKey = null
+  let lastWatchToken = null
+  let pendingReinitToken = null
+  let checkTimer = null
   // Check Theme
   const WhiteTheme = ThemeCheck('html', 'rgb(249, 249, 249)')
 
+  function ytDebug (stage, payload) {
+    // debug logs temporarily disabled for verification
+    if (reportMode && Date.now() < 0) {
+      console.log('[PTTChatOnYT][InitYT]', stage, payload)
+    }
+  }
+
+  function scheduleCheck (delay) {
+    if (checkTimer) clearTimeout(checkTimer)
+    checkTimer = setTimeout(CheckChatInstanced, delay)
+    ytDebug('scheduleCheck', { delay })
+  }
+
+  function getMoviePlayer () {
+    return document.getElementById('movie_player')
+  }
+
+  function getCurrentVideoKey () {
+    const moviePlayer = getMoviePlayer()
+    if (moviePlayer && typeof moviePlayer.getVideoData === 'function') {
+      const videoData = moviePlayer.getVideoData()
+      if (videoData && videoData.video_id) return 'watch:' + videoData.video_id
+    }
+    try {
+      const url = new URL(window.location.href)
+      if (url.pathname === '/watch') {
+        const videoId = url.searchParams.get('v')
+        return videoId ? 'watch:' + videoId : null
+      }
+      if (/^\/live\//.test(url.pathname)) {
+        return 'live:' + url.pathname
+      }
+      return null
+    } catch (e) {
+      return null
+    }
+  }
+
+  function getCurrentWatchToken () {
+    if (!isWatchPage()) return null
+    return window.location.pathname + window.location.search
+  }
+
+  function resetVideoRelatedState () {
+    ytDebug('resetVideoRelatedState:start', { lastVideoKey, lastWatchToken })
+    msg.targetWindow = null
+    store.dispatch('pttState', 0)
+    store.dispatch('clearChat')
+    store.commit(types.UPDATEPOST, {
+      key: '',
+      board: '',
+      title: '',
+      date: new Date(),
+      lastEndLine: 0,
+      lastCommentTime: new Date(),
+      commentCount: 0,
+      nowComment: 0,
+      gettedpost: false
+    })
+    ;[
+      'videoType',
+      'videoStartTime',
+      'videoEndTime',
+      'postKey',
+      'postBoard',
+      'postTitle',
+      'postDate',
+      'postEndLine',
+      'postCommentCount',
+      'postLastCommentTime',
+      'videoPlayedTime',
+      'videoCurrentTime',
+      'commentIndex'
+    ].forEach(type => store.dispatch('removeLog', type))
+    ytDebug('resetVideoRelatedState:done')
+  }
+
+  function teardownCurrentApp () {
+    const app = document.getElementById('PTTChat')
+    if (app && app.parentNode) {
+      ytDebug('teardownCurrentApp:remove', { hasParent: !!app.parentNode })
+      app.parentNode.removeChild(app)
+    } else {
+      ytDebug('teardownCurrentApp:skip', { appExists: !!app })
+    }
+  }
+
   function getPlayerResponse () {
-    // In userscript sandbox, yt runtime data may live on unsafeWindow.
+    const moviePlayer = getMoviePlayer()
+    if (moviePlayer && typeof moviePlayer.getPlayerResponse === 'function') {
+      const response = moviePlayer.getPlayerResponse()
+      if (response && response.microformat) return response
+    }
+    // Fallback: in userscript sandbox, yt runtime data may live on unsafeWindow.
     const globalWindow = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window
     return globalWindow.ytInitialPlayerResponse || window.ytInitialPlayerResponse
+  }
+
+  function parseDateSafe (value) {
+    if (!value) return null
+    const parsedDate = new Date(value)
+    return Number.isNaN(parsedDate.valueOf()) ? null : parsedDate
+  }
+
+  function getVideoTimeline () {
+    const playerResponse = getPlayerResponse()
+    if (!playerResponse) return {}
+
+    const microformat = playerResponse.microformat && playerResponse.microformat.playerMicroformatRenderer
+    const liveBroadcastDetails = microformat && microformat.liveBroadcastDetails
+
+    const startDate = parseDateSafe(
+      (liveBroadcastDetails && liveBroadcastDetails.startTimestamp) ||
+      (microformat && microformat.publishDate) ||
+      (microformat && microformat.uploadDate)
+    )
+    const endDate = parseDateSafe(liveBroadcastDetails && liveBroadcastDetails.endTimestamp)
+    return { startDate, endDate }
+  }
+
+  function syncVideoMetaToStore () {
+    let isStream = false
+    try {
+      isStream = checkVideoType()
+    } catch (e) {
+      if (reportMode) console.log('syncVideoMetaToStore checkVideoType failed', e)
+    }
+    store.dispatch('isStream', isStream)
+    store.dispatch('updateLog', { type: 'videoType', data: isStream ? '實況' : '影片' })
+
+    if (isStream) return
+
+    const timeline = getVideoTimeline()
+    if (timeline.startDate) {
+      store.dispatch('updateVideoStartDate', timeline.startDate)
+    }
+    if (timeline.endDate) {
+      store.dispatch('updateLog', { type: 'videoEndTime', data: timeline.endDate.toLocaleDateString() + ' ' + timeline.endDate.toLocaleTimeString() })
+    }
   }
 
   function checkLiveByPlayerResponse () {
@@ -34,22 +175,89 @@ export default function InitYT (messagePoster, siteName) {
     return pathname === '/watch' || /^\/live\//.test(pathname)
   }
 
-  (function CheckChatInstanced () {
+  function CheckChatInstanced () {
+    ytDebug('CheckChatInstanced:enter', {
+      href: window.location.href,
+      lastVideoKey,
+      lastWatchToken
+    })
     if (!isWatchPage()) {
-      if (showAllLog) console.log('not watch video.')
-      setTimeout(CheckChatInstanced, 2000)
+      lastVideoKey = null
+      lastWatchToken = null
+      ytDebug('CheckChatInstanced:notWatchPage')
+      scheduleCheck(2000)
       return
     }
+
+    const currentWatchToken = getCurrentWatchToken()
+    const currentVideoKey = getCurrentVideoKey()
+    syncVideoMetaToStore()
+    ytDebug('CheckChatInstanced:keys', { currentWatchToken, currentVideoKey, lastWatchToken, lastVideoKey })
+    if (currentWatchToken && lastWatchToken && currentWatchToken !== lastWatchToken) {
+      ytDebug('CheckChatInstanced:watchTokenChanged', { from: lastWatchToken, to: currentWatchToken })
+      teardownCurrentApp()
+      resetVideoRelatedState()
+      pendingReinitToken = currentWatchToken
+      lastWatchToken = currentWatchToken
+      lastVideoKey = currentVideoKey
+      scheduleCheck(1200)
+      return
+    }
+    if (currentVideoKey && lastVideoKey && currentVideoKey !== lastVideoKey) {
+      ytDebug('CheckChatInstanced:videoKeyChanged', { from: lastVideoKey, to: currentVideoKey })
+      teardownCurrentApp()
+      resetVideoRelatedState()
+      pendingReinitToken = currentWatchToken || pendingReinitToken
+      lastVideoKey = currentVideoKey
+      lastWatchToken = currentWatchToken
+      scheduleCheck(1200)
+      return
+    }
+    if (currentWatchToken && !lastWatchToken) {
+      lastWatchToken = currentWatchToken
+    }
+    if (currentVideoKey && !lastVideoKey) {
+      lastVideoKey = currentVideoKey
+    }
+
     const ChatContainer = $('#chat-container').length > 0
       ? $('#chat-container')
       : $('ytd-live-chat-frame')
     const defaultChat = $('iframe', ChatContainer)
     const PTTApp = $('#PTTChat', ChatContainer)
+    const appVideoToken = PTTApp.length > 0 ? PTTApp.attr('data-video-token') : null
+    ytDebug('CheckChatInstanced:dom', {
+      chatContainerLength: ChatContainer.length,
+      defaultChatLength: defaultChat.length,
+      pttAppLength: PTTApp.length,
+      appVideoToken,
+      currentWatchToken
+    })
+
+    if (PTTApp.length > 0 && currentWatchToken && appVideoToken && appVideoToken !== currentWatchToken) {
+      ytDebug('CheckChatInstanced:appTokenMismatchReinit', { appVideoToken, currentWatchToken })
+      teardownCurrentApp()
+      resetVideoRelatedState()
+      pendingReinitToken = currentWatchToken
+      lastWatchToken = currentWatchToken
+      lastVideoKey = currentVideoKey
+      scheduleCheck(1200)
+      return
+    }
+
     if (PTTApp.length > 0) {
-      if (showAllLog) console.log('PTTApp already instanced.')
-      setTimeout(CheckChatInstanced, 5000)
+      if (currentWatchToken && !appVideoToken) {
+        PTTApp.attr('data-video-token', currentWatchToken)
+      }
+      ytDebug('CheckChatInstanced:alreadyInstanced')
+      scheduleCheck(1000)
     } else if (defaultChat.length > 0) {
-      if (showAllLog) console.log('PTTApp frame instance!')
+      if (pendingReinitToken && currentWatchToken !== pendingReinitToken) {
+        ytDebug('CheckChatInstanced:waitPendingToken', { pendingReinitToken, currentWatchToken })
+        scheduleCheck(500)
+        return
+      }
+      ytDebug('CheckChatInstanced:initApp')
       ChatContainer.css({ position: 'relative' })
 
       // 生出套件
@@ -59,14 +267,41 @@ export default function InitYT (messagePoster, siteName) {
       } catch (e) {
         console.log('checkVideoType failed, fallback as video mode', e)
       }
+      ytDebug('CheckChatInstanced:videoType', { isStream })
       InitApp(ChatContainer, WhiteTheme, isStream, msg, siteName)
+      setTimeout(() => {
+        const currentApp = $('#PTTChat', ChatContainer)
+        if (currentApp.length > 0 && currentWatchToken) {
+          currentApp.attr('data-video-token', currentWatchToken)
+        }
+      }, 0)
       ChangeLog()
-      setTimeout(CheckChatInstanced, 5000)
+      pendingReinitToken = null
+      if (currentVideoKey) lastVideoKey = currentVideoKey
+      if (currentWatchToken) lastWatchToken = currentWatchToken
+      scheduleCheck(1000)
     } else {
-      if (showAllLog) console.log('watching video without chatroom.')
-      setTimeout(CheckChatInstanced, 5000)
+      ytDebug('CheckChatInstanced:noChatRoom')
+      scheduleCheck(1000)
     }
-  })()
+  }
+
+  if (!window.__PTTChatOnYT_YT_NAV_HOOKED__) {
+    window.addEventListener('yt-navigate-finish', () => {
+      ytDebug('event:yt-navigate-finish', { href: window.location.href })
+      scheduleCheck(50)
+    }, true)
+    window.addEventListener('yt-page-data-updated', () => {
+      ytDebug('event:yt-page-data-updated', { href: window.location.href })
+      scheduleCheck(50)
+    }, true)
+    window.__PTTChatOnYT_YT_NAV_HOOKED__ = true
+    ytDebug('eventHooks:registered')
+  } else {
+    ytDebug('eventHooks:alreadyRegistered')
+  }
+
+  CheckChatInstanced()
   function getScriptTag () {
     const scriptTagElement = document.getElementById('scriptTag')
     if (scriptTagElement == null) return
