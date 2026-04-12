@@ -61,7 +61,9 @@ export default function InitApp (
     /* -----------------------------------preInitApp----------------------------------- */
     // init property
     const ele = document.createElement('div')
-    ele.id = 'PTTChat'
+    // Keep mount container ID distinct so selector-based layout logic always targets
+    // the rendered app root (#PTTChat) instead of an empty wrapper.
+    ele.id = 'PTTChatMount'
     if (cn) cn[0].appendChild(ele)
     const bootsrtapicon = document.createElement('link')
     bootsrtapicon.setAttribute('rel', 'stylesheet')

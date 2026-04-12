@@ -20,7 +20,7 @@ export default {
       }
     }
   },
-  mouted () {
+  mounted () {
     GM_deleteValue('PostAID')
     GM_deleteValue('A-custom-PushIntervalMax')
     GM_deleteValue('A-custom-PushIntervalMin')
