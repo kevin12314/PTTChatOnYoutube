@@ -17,7 +17,7 @@
     </div>
     <div
       v-if="confirmBtn"
-      class="col-2 pr-0"
+      class="col-2 pe-0"
     >
       <button
         :id="BtnId"
@@ -55,7 +55,7 @@ export default {
   },
   computed: {
     Classes: function () {
-      const classes = ['form-row', 'px-0', 'mx-0', 'my-2']
+      const classes = ['row', 'px-0', 'mx-0', 'my-2']
       if (this.nowPluginWidth < 399) { classes.push('col-' + Math.min(this.Col * 2, 12)) } else classes.push('col-' + Math.min(this.Col, 12))
       return classes.join(' ')
     },

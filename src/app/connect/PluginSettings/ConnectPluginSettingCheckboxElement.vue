@@ -8,7 +8,7 @@
       @change="$_PluginSetting_valueChange()"
     >
     <label
-      class="form-check-label ml-2"
+      class="form-check-label ms-2"
       :for="settingName"
     >{{ description }}</label>
   </div>

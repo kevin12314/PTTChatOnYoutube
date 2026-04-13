@@ -1,6 +1,6 @@
 
 <template>
-  <div class="container">
+  <div class="container ptt-comment-composer">
     <div :class="className">
       <div class="col">
         <input
@@ -49,7 +49,7 @@ export default {
       else return '請到連線設定開啟測試版推文功能'
     },
     className: function () {
-      const classes = ['form-row', 'my-2']
+      const classes = ['row', 'my-2', 'align-items-center']
       if (!this.isStream) { classes.push('d-none') }
       return classes.join(' ')
     },

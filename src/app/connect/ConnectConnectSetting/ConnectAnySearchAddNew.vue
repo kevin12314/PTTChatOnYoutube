@@ -2,7 +2,7 @@
 <template>
   <div>
     <div
-      class="form-row mt-3"
+      class="row mt-3"
     >
       <label
         for="anySearch"

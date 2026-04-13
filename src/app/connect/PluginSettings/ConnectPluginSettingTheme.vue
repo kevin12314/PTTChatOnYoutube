@@ -1,6 +1,6 @@
 
 <template>
-  <div class="form-row px-2">
+  <div class="row px-2">
     <connect-dropdown
       :setting-name="'Theme'"
       :description="'主題顏色'"
@@ -8,8 +8,9 @@
       :default-value="0"
     />
     <div
+      v-show="showThemeColorOption"
       ref="themeColorOption"
-      class="collapse w-100"
+      class="w-100"
     >
       <connect-dropdown
         :setting-name="'ThemeColorBG'"
@@ -56,15 +57,6 @@ export default {
       return +this.getTheme === 3
     },
     ...Vuex.mapGetters(['getTheme'])
-  },
-  watch: {
-    getTheme (e) {
-      if (+e === 3) $(this.$refs.themeColorOption).collapse('show')
-      else $(this.$refs.themeColorOption).collapse('hide')
-    }
-  },
-  mounted () {
-    if (+this.getTheme === 3)$(this.$refs.themeColorOption).collapse('show')
   }
 }
 </script>

@@ -17,7 +17,8 @@ export default {
       mousex: 0,
       mousey: 0,
       w: 0,
-      h: 0
+      h: 0,
+      mouseMoveHandler: null
     }
   },
 
@@ -57,13 +58,18 @@ export default {
     ...Vuex.mapGetters(['previewImage'])
   },
   mounted () {
-    const self = this
-    $('body').mousemove(function (e) {
-      self.mousex = e.pageX
-      self.mousey = e.pageY
-    })
+    this.mouseMoveHandler = (event) => {
+      this.mousex = event.pageX
+      this.mousey = event.pageY
+    }
+    document.body.addEventListener('mousemove', this.mouseMoveHandler)
   },
-  beforeUnmount () { $('body').off('mousemove') },
+  beforeUnmount () {
+    if (this.mouseMoveHandler) {
+      document.body.removeEventListener('mousemove', this.mouseMoveHandler)
+      this.mouseMoveHandler = null
+    }
+  },
   methods: {
     getWidth: function () {
       if (this.preview) this.w = this.$refs.imgel.width

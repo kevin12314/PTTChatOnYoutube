@@ -1,14 +1,14 @@
 
 <template>
   <div class="form-group my-3">
-    <div class="form-row mt-3 mb-2">
+    <div class="row mt-3 mb-2">
       <label class="col-3 col-form-label">{{ description }}</label>
       <div class="col">
         <div class="dropdown">
           <button
             class="btn ptt-btnoutline dropdown-toggle"
             type="button"
-            data-toggle="dropdown"
+            data-bs-toggle="dropdown"
           >
             {{ dropdownPreview ? dropdownPreview : '請選擇...' }}
           </button>
@@ -25,7 +25,7 @@
             >
               {{ item }}
               <button
-                class="close"
+                class="btn btn-sm p-0 ms-2 border-0 text-reset"
                 type="button"
                 @click.stop.prevent="$_connectAutoLoadPost_onClickRemoveOption(index)"
               >
@@ -48,7 +48,7 @@
       ref="manualInputArea"
       class="collapse"
     >
-      <div class="form-row">
+      <div class="row">
         <div class="col-3" />
         <div
           class="col"
@@ -82,12 +82,12 @@
       ref="previewArea"
       class="my-3 collapse"
     >
-      <div class="form-row">
+      <div class="row">
         <div class="col-3">
           <label class="col-form-label">標題預覽</label>
         </div>
         <div
-          class="col ml-2"
+          class="col ms-2"
           style="border:1px solid;"
         >
           <div class="my-2">
@@ -100,6 +100,7 @@
 </template>
 
 <script>
+import { collapseAction } from 'src/bootstrap'
 export default {
   inject: ['msg'],
   data () {
@@ -120,12 +121,12 @@ export default {
   },
   watch: {
     previewTitle () {
-      $(this.$refs.manualInputArea).collapse('hide')
-      $(this.$refs.previewArea).collapse('show')
+      collapseAction(this.$refs.manualInputArea, 'hide')
+      collapseAction(this.$refs.previewArea, 'show')
       this.$store.dispatch('gotoChat', true)
     },
     enableManualInput (e) {
-      if (e) $(this.$refs.manualInputArea).collapse('show')
+      if (e) collapseAction(this.$refs.manualInputArea, 'show')
     }
   },
   mounted () {
@@ -140,7 +141,7 @@ export default {
         this.$store.dispatch('Alert', { type: 0, msg: 'PTT尚未登入，請先登入。' })
         return
       }
-      $(this.$refs.manualInputArea).collapse('hide')
+      collapseAction(this.$refs.manualInputArea, 'hide')
       const result = /(.+) \((.+)\)/.exec(item)
       this.board = result[2]
       this.title = result[1]

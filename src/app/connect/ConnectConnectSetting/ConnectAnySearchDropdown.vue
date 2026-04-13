@@ -1,14 +1,14 @@
 
 <template>
   <div class="form-group my-3">
-    <div class="form-row mt-3 mb-2">
+    <div class="row mt-3 mb-2">
       <label class="col-3 col-form-label">{{ description }}</label>
       <div class="col">
         <div class="dropdown">
           <button
             class="btn ptt-btnoutline dropdown-toggle"
             type="button"
-            data-toggle="dropdown"
+            data-bs-toggle="dropdown"
           >
             {{ dropdownPreview ? dropdownPreview : '最近搜尋' }}
           </button>
@@ -25,7 +25,7 @@
             >
               {{ item }}
               <button
-                class="close ml-2"
+                class="btn btn-sm p-0 ms-2 border-0 text-reset"
                 type="button"
                 @click.stop.prevent="$_connectAnySearchDropdown_onClickRemoveOption(index)"
               >
@@ -35,7 +35,7 @@
                 />
               </button>
               <button
-                class="close ml-2"
+                class="btn btn-sm p-0 ms-2 border-0 text-reset"
                 type="button"
                 disabled
               >
@@ -54,7 +54,7 @@
             >
               {{ item }}
               <button
-                class="close ml-2"
+                class="btn btn-sm p-0 ms-2 border-0 text-reset"
                 type="button"
                 @click.stop.prevent="$_connectAnySearchDropdown_onClickRemoveRecent(index)"
               >
@@ -64,7 +64,7 @@
                 />
               </button>
               <button
-                class="close ml-2"
+                class="btn btn-sm p-0 ms-2 border-0 text-reset"
                 type="button"
                 @click.stop.prevent="$_connectAnySearchDropdown_onClickLock(index)"
               >
@@ -82,12 +82,12 @@
       ref="previewArea"
       class="my-3 collapse"
     >
-      <div class="form-row">
+      <div class="row">
         <div class="col-3">
           <label class="col-form-label">標題預覽</label>
         </div>
         <div
-          class="col ml-2"
+          class="col ms-2"
           style="border:1px solid;"
         >
           <div class="my-2">
@@ -100,6 +100,7 @@
 </template>
 
 <script>
+import { collapseAction } from 'src/bootstrap'
 import gaPush from 'src/ga/setvalue'
 export default {
   inject: ['msg', 'isStream'],
@@ -122,8 +123,8 @@ export default {
   },
   watch: {
     previewTitle () {
-      $(this.$refs.manualInputArea).collapse('hide')
-      $(this.$refs.previewArea).collapse('show')
+      collapseAction(this.$refs.manualInputArea, 'hide')
+      collapseAction(this.$refs.previewArea, 'show')
       this.$store.dispatch('gotoChat', true)
     },
     anySearch (e) {

@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <div class="form-row mb-3">
+    <div class="row mb-3">
       <div class="col">
         <connect-plugin-setting-checkbox-element
           :setting-name="'AnySearchHint'"
@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import { collapseAction } from 'src/bootstrap'
 import ConnectPluginSettingCheckboxElement from '../PluginSettings/ConnectPluginSettingCheckboxElement.vue'
 export default {
   components: {
@@ -47,11 +48,11 @@ export default {
   },
   watch: {
     getAnySearchHint (e) {
-      $(this.$refs.AnySearchHint).collapse(e ? 'show' : 'hide')
+      collapseAction(this.$refs.AnySearchHint, e ? 'show' : 'hide')
     }
   },
   mounted () {
-    if (this.getAnySearchHint)$(this.$refs.AnySearchHint).collapse('show')
+    if (this.getAnySearchHint) collapseAction(this.$refs.AnySearchHint, 'show')
   }
 }
 </script>

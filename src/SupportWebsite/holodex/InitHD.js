@@ -1,4 +1,5 @@
 import InitApp from 'src/app/appindex'
+import { collapseAction } from 'src/bootstrap'
 import ChangeLog from 'src/ChangeLog'
 import { ThemeCheck } from 'src/library'
 import gaUseExtensionEvent from 'src/ga/useExtensionEvent'
@@ -45,10 +46,10 @@ export default function InitHD (messageposter, siteName) {
       if (GM_getValue('PluginTypeHolodex', '1') === '1') {
         if (collapseEnd || !collapseStart) {
           if (nowWidth === 0) {
-            $('#PTTMain').collapse('show')
+            collapseAction(document.getElementById('PTTMain'), 'show')
             nowWidth = pluginWidth
           } else {
-            $('#PTTMain').collapse('hide')
+            collapseAction(document.getElementById('PTTMain'), 'hide')
             nowWidth = 0
           }
           $('#pttchatparent').css('flex', `0 0 ${nowWidth}px`)
@@ -56,8 +57,6 @@ export default function InitHD (messageposter, siteName) {
       }
       if (reportMode) console.log('hide PTT')
     })
-    $(document).on('show.bs.collapse hide.bs.collapse', '#PTTMain', () => { collapseStart = true; collapseEnd = false })
-    $(document).on('shown.bs.collapse hidden.bs.collapse', '#PTTMain', () => { collapseStart = false; collapseEnd = true })
 
     iconSwitch.on('click', () => {
       if (confirm(`切換為${GM_getValue('PluginTypeHolodex', '1') === '0' ? '舊' : '新'}版PTT顯示模式？`)) {
@@ -93,7 +92,7 @@ export default function InitHD (messageposter, siteName) {
           $('#PTTChat').addClass('w-100').attr('style', '')
           break
       }
-      $('#PTTMain').collapse('hide')
+      collapseAction(document.getElementById('PTTMain'), 'hide')
     }
 
     if ($('#PTTChat').length === 0) {
@@ -108,6 +107,13 @@ export default function InitHD (messageposter, siteName) {
     let mainTimer = GM_getValue('PluginTypeHolodex', '1') === '0'
       ? setInterval(appendPttEmbedBtn, 1000)
       : undefined
+    const mainPanel = document.getElementById('PTTMain')
+    if (mainPanel) {
+      mainPanel.addEventListener('show.bs.collapse', () => { collapseStart = true; collapseEnd = false })
+      mainPanel.addEventListener('hide.bs.collapse', () => { collapseStart = true; collapseEnd = false })
+      mainPanel.addEventListener('shown.bs.collapse', () => { collapseStart = false; collapseEnd = true })
+      mainPanel.addEventListener('hidden.bs.collapse', () => { collapseStart = false; collapseEnd = true })
+    }
     recentWatch = true
     if (reportMode) console.log('main initialize done')
   }
@@ -171,7 +177,7 @@ export default function InitHD (messageposter, siteName) {
       $('#PTTChat-app').height(height - 24)
     }
     $('#PTTChat').removeClass('w-100').css('display', 'block')
-    $('#PTTMain').collapse('show')
+    collapseAction(document.getElementById('PTTMain'), 'show')
     checkCellRemoved(parentCell[0])
   }
 
@@ -194,7 +200,7 @@ export default function InitHD (messageposter, siteName) {
   function hidePttChatInGrid () {
     if ($('.vue-grid-layout #PTTChat').length !== 0) {
       $('#PTTChat').css('display', 'none')
-      $('#PTTMain').collapse('hide')
+      collapseAction(document.getElementById('PTTMain'), 'hide')
     }
     if (observer) observer.disconnect()
     if (reportMode) console.log('hide PTTChat')

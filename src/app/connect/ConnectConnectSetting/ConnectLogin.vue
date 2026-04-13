@@ -1,6 +1,6 @@
 
 <template>
-  <div class="form-row mt-3">
+  <div class="row mt-3">
     <div class="col-5">
       <label for="PTTid">PTT IDD</label>
       <input

@@ -13,8 +13,8 @@
         ref="chatbtn"
         class="nav-link ptt-text bg-transparent"
         type="button"
-        data-toggle="tab"
-        data-target="#PTTChat-contents-Chat"
+        data-bs-toggle="tab"
+        data-bs-target="#PTTChat-contents-Chat"
         role="tab"
         aria-controls="PTTChat-contents-Chat"
         aria-selected="false"
@@ -28,8 +28,8 @@
         id="nav-item-Connect"
         class="nav-link ptt-text bg-transparent active"
         type="button"
-        data-toggle="tab"
-        data-target="#PTTChat-contents-Connect"
+        data-bs-toggle="tab"
+        data-bs-target="#PTTChat-contents-Connect"
         role="tab"
         aria-controls="PTTChat-contents-Connect"
         aria-selected="true"
@@ -43,8 +43,8 @@
         id="nav-item-other"
         class="nav-link ptt-text bg-transparent"
         type="button"
-        data-toggle="tab"
-        data-target="#PTTChat-contents-other"
+        data-bs-toggle="tab"
+        data-bs-target="#PTTChat-contents-other"
         role="tab"
         aria-controls="PTTChat-contents-other"
         aria-selected="false"
@@ -58,8 +58,8 @@
         id="nav-item-PTT"
         class="nav-link ptt-text bg-transparent"
         type="button"
-        data-toggle="tab"
-        data-target="#PTTChat-contents-PTT"
+        data-bs-toggle="tab"
+        data-bs-target="#PTTChat-contents-PTT"
         role="tab"
         aria-controls="PTTChat-contents-PTT"
         aria-selected="false"
@@ -73,8 +73,8 @@
         id="nav-item-log"
         class="nav-link ptt-text bg-transparent"
         type="button"
-        data-toggle="tab"
-        data-target="#PTTChat-contents-log"
+        data-bs-toggle="tab"
+        data-bs-target="#PTTChat-contents-log"
         role="tab"
         aria-controls="PTTChat-contents-log"
         aria-selected="false"
@@ -88,8 +88,8 @@
         id="nav-item-TimeSet"
         class="nav-link ptt-text bg-transparent d-none"
         type="button"
-        data-toggle="collapse"
-        data-target="#PTTChat-Time"
+        data-bs-toggle="collapse"
+        data-bs-target="#PTTChat-Time"
         aria-controls="PTTChat-Time"
         aria-expanded="false"
       >
@@ -100,6 +100,8 @@
 </template>
 
 <script>
+import { showTab as showBootstrapTab } from 'src/bootstrap'
+
 export default {
   computed: {
     isGotoChat: function () {
@@ -120,7 +122,7 @@ export default {
     showTab: function (event) {
       event.preventDefault()
       event.stopPropagation()
-      $(event.currentTarget).tab('show')
+      showBootstrapTab(event.currentTarget)
     }
   }
 }

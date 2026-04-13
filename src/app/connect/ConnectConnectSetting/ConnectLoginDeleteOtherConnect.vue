@@ -1,5 +1,5 @@
 <template>
-  <div class="form-row mb-3">
+  <div class="row mb-3">
     <div class="col">
       <connect-plugin-setting-checkbox-element
         :setting-name="'DeleteOtherConnect'"

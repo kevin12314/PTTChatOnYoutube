@@ -2,7 +2,7 @@
 <template>
   <div
     :id="id"
-    class="form-row px-0 mx-0 col-12 my-2"
+    class="row px-0 mx-0 col-12 my-2"
   >
     <legend class="col-form-label col-3 pt-0">
       {{ description }}
@@ -13,7 +13,7 @@
           :id="btnid"
           class="btn ptt-btnoutline btn-sm dropdown-toggle"
           type="button"
-          data-toggle="dropdown"
+          data-bs-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false"
         >

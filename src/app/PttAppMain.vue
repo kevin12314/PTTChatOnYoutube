@@ -1,7 +1,7 @@
 <template>
   <div
     id="PTTChat-app"
-    class="ptt-bg ptt-border rounded w-100 d-flex flex-column"
+    class="ptt-bg ptt-border-bottom rounded w-100 d-flex flex-column"
   >
     <PTTAppNav />
     <PTTAppContent />

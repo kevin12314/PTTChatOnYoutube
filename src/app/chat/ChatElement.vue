@@ -1,9 +1,9 @@
 <template>
   <div
-    class="ptt-chat media px-3"
+    class="ptt-chat d-flex px-3"
     :style="bgc"
   >
-    <div class="media-body mw-100">
+    <div class="flex-grow-1 mw-100">
       <div
         class="ptt-chat-info d-flex flex-row"
         :style="infoStyle"
@@ -11,7 +11,7 @@
         <p :class="typeclass">
           {{ item.type }}
         </p>
-        <p class="ptt-chat-id mr-2 mb-0 flex-grow-1">
+        <p class="ptt-chat-id me-2 mb-0 flex-grow-1">
           {{ item.pttid }}
         </p>
         <p class="ptt-chat-time mb-0">
@@ -48,7 +48,7 @@ export default {
     timem: function () { return paddingLeft(this.item.time.getMinutes(), +2) },
     typeclass: function () {
       const typecolor = this.item.type === '推 ' ? 'ptt-chat-type' : 'ptt-chat-type-n'
-      return typecolor + ' mr-2 mb-0'
+      return typecolor + ' me-2 mb-0'
     },
     bgc: function () {
       if (this.getDisableCommentGray) return ''

@@ -1,7 +1,7 @@
 
 <template>
   <div
-    class="form-row my-3"
+    class="row my-3"
     :now-aid="nowAID"
   >
     <label

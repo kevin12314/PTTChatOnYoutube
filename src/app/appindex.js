@@ -168,7 +168,6 @@ export default function InitApp (
           ;(function tryFetchVideoTimeline () {
             try {
               let foundStart = false
-              let foundEnd = false
 
               const timeline = getYoutubeTimeline()
               if (timeline.startDate) {
@@ -179,7 +178,6 @@ export default function InitApp (
               if (timeline.endDate) {
                 if (reportMode) console.log('endDate from ytInitialPlayerResponse', timeline.endDate)
                 self.$store.dispatch('updateLog', { type: 'videoEndTime', data: timeline.endDate.toLocaleDateString() + ' ' + timeline.endDate.toLocaleTimeString() })
-                foundEnd = true
               }
 
               if (!foundStart) {
@@ -202,7 +200,6 @@ export default function InitApp (
                     if (endDate) {
                       if (reportMode) console.log('endDate from scriptTag', endDate)
                       self.$store.dispatch('updateLog', { type: 'videoEndTime', data: endDate.toLocaleDateString() + ' ' + endDate.toLocaleTimeString() })
-                      foundEnd = true
                     }
                   }
                 }

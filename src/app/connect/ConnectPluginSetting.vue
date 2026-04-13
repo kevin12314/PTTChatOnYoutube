@@ -5,7 +5,7 @@
       :title="'套件設定'"
       :description="'輸入數值之後按Enter確認'"
     />
-    <div class="form-row px-2">
+    <div class="row px-2">
       <connect-plugin-setting-input-element
         :setting-name="'PluginHeight'"
         :description="'套件長度(px)'"
@@ -23,7 +23,7 @@
         :column="6"
       />
     </div>
-    <div class="form-row px-2">
+    <div class="row px-2">
       <connect-plugin-setting-input-element
         :setting-name="'Fontsize'"
         :description="'字體尺寸(px)'"
@@ -43,7 +43,7 @@
     </div>
     <div
       v-if="siteName === 'Holotools' ||siteName === 'niji-mado'"
-      class="form-row px-2"
+      class="row px-2"
     >
       <connect-plugin-setting-input-element
         :setting-name="'PluginWidth'"
@@ -59,7 +59,7 @@
     </div>
     <div
       v-if="siteName === 'Holotools'"
-      class="form-row px-2"
+      class="row px-2"
     >
       <connect-plugin-setting-input-element
         :setting-name="'PluginPortraitHeight'"
@@ -74,10 +74,10 @@
       </p>
     </div>
     <connect-plugin-setting-theme />
-    <div class="form-row px-2">
+    <div class="row px-2">
       <connect-other-setting />
     </div>
-    <div class="form-row px-2">
+    <div class="row px-2">
       <connect-new-version />
     </div>
   </div>

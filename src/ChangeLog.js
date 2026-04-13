@@ -1,6 +1,8 @@
 /**
  *
  */
+import { showModal } from './bootstrap'
+
 export default function ChangeLog () {
   /**
    * @returns {string} newest post in ptt
@@ -87,12 +89,15 @@ export default function ChangeLog () {
   class Info { constructor () { this.版本 = []; this.HoloDex = []; this.HoloTools = []; this.Twitch = []; this.Nijimado = []; this.Youtube = [] } }
   const allChangeLogInfo = AddChangeLogInfo()
   const changeLogInfo = GetChangeLogInfo(new Info(), +previousVersion[0], +previousVersion[1] + 1)
-  const changeLogHTML = EncodeChangeLog(changeLogInfo)
+  const encodedLogHTML = EncodeChangeLog(changeLogInfo)
+  const changeLogHTML = encodedLogHTML.trim().length > 0
+    ? encodedLogHTML
+    : `<div>目前版本 ${GM_info.script.version} 尚未整理更新日誌內容。</div>`
   const PTTChangeLogURL = GetPTTChangeLogURL()
 
   // data-backdrop should be empty
-  const modal = $(`
-    <div id="PTTChangeLog" class="modal fade" data-backdrop="" data-keyboard="false" tabindex="-1" aria-hidden="true" style="color: #000; overflow: overlay;">
+  const modal = `
+    <div id="PTTChangeLog" class="modal fade" tabindex="-1" aria-hidden="true" style="color: #000; overflow: overlay;">
       <div class="modal-dialog modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -103,13 +108,14 @@ export default function ChangeLog () {
           </div>
           <div class="modal-footer">
           <a href="${PTTChangeLogURL}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" type="button">閱讀更多</a>
-          <button type="button" class="btn btn-primary" data-dismiss="modal">關閉</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">關閉</button>
           </div>
         </div>
       </div>
-    </div>`)
-  $('#PTTChat').append(modal)
-  $('#PTTChangeLog').modal('show')
+    </div>`
+  const pttChat = document.getElementById('PTTChat')
+  if (pttChat) pttChat.insertAdjacentHTML('beforeend', modal)
+  showModal(document.getElementById('PTTChangeLog'), { backdrop: true, keyboard: false })
 
   /**
    * @param {object} info ..

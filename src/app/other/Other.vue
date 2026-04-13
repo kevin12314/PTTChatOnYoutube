@@ -4,14 +4,14 @@
     :class="Classes"
   >
     <other-title :title="'使用教學'" />
-    <pre class="mt-1 mb-0 ml-5">
+    <pre class="mt-1 mb-0 ms-5">
 1.輸入帳號與密碼登入PTT
 2.輸入包含看板名稱的AID或是搜尋功能找到想要的文章
 3.最近的搜尋紀錄都會記錄在下拉式選單
   點選鎖頭可以將蒐尋紀錄永久保存
     </pre>
     <other-title :title="'文章搜尋功能'" />
-    <pre class="mt-1 mb-0 ml-5">
+    <pre class="mt-1 mb-0 ms-5">
 搜尋規則為[看板名稱,搜尋指令+關鍵字,搜尋指令+關鍵字]
 範例:C_Chat,/間直播,Z5
 在C_Chat板搜尋標題含有"間直播"

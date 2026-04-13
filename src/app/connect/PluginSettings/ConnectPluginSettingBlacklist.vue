@@ -23,6 +23,7 @@
 </template>
 
 <script>
+import { collapseAction } from 'src/bootstrap'
 import ConnectPluginSettingCheckboxElement from './ConnectPluginSettingCheckboxElement.vue'
 export default {
   components: {
@@ -41,11 +42,11 @@ export default {
   },
   watch: {
     isEnable: function (e) {
-      $(this.$refs.isEnable).collapse(e ? 'show' : 'hide')
+      collapseAction(this.$refs.isEnable, e ? 'show' : 'hide')
     }
   },
   mounted () {
-    if (this.isEnable)$(this.$refs.isEnable).collapse('show')
+    if (this.isEnable) collapseAction(this.$refs.isEnable, 'show')
   },
   methods: {
     $_PluginSetting_valueChange: function () { this.$store.dispatch('set' + this.settingName, this.SettingValue) }

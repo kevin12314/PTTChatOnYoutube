@@ -5,9 +5,9 @@ import { FrameState } from './PttState.js'
  * @this {Ptt}
  */
 function Reconnect () {
-  const disbtn = $('.btn.btn-danger[type=button]')
-  if (disbtn && disbtn.length > 0) {
-    disbtn[0].click()
+  const disconnectBtn = document.querySelector('.btn.btn-danger[type=button]')
+  if (disconnectBtn) {
+    disconnectBtn.click()
     this.state.login = false
     this.state.serverfull = false
     this.state.screenUpdated = false

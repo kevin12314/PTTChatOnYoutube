@@ -1,13 +1,22 @@
-$ptt-theme-colors: ();
+$ptt-theme-colors: (
+);
+
 @for $colorlight from 0 through 20 {
-  $map: (pttbgc-#{$colorlight}: lighten(#000, $colorlight * 5%));
-  $ptt-theme-colors: map-merge($ptt-theme-colors, $map);
+  $map: (
+    pttbgc-#{$colorlight}: lighten(#000, $colorlight * 5%)
+  );
+$ptt-theme-colors: map-merge($ptt-theme-colors, $map);
 }
-$ptt-theme-reversecolor: ();
+
+$ptt-theme-reversecolor: (
+);
+
 @for $colorlight from 0 through 10 {
   $colorreverse: 10-$colorlight;
-  $map: (pttc-#{$colorreverse}: lighten(#000, $colorlight * 10%));
-  $ptt-theme-reversecolor: map-merge($ptt-theme-reversecolor, $map);
+  $map: (
+    pttc-#{$colorreverse}: lighten(#000, $colorlight * 10%)
+  );
+$ptt-theme-reversecolor: map-merge($ptt-theme-reversecolor, $map);
 }
 
 $chat-type: #fff;
@@ -44,8 +53,111 @@ $font-size-base: 12px;
 );*/
 
 #PTTChat {
-  * {
-    all: revert;
+  // Bootstrap `:root` vars are scoped away inside this block; provide local vars.
+  --bs-body-bg: #fff;
+  --bs-body-color: #212529;
+  --bs-border-width: 1px;
+  --bs-border-style: solid;
+  --bs-border-radius: 0.375rem;
+  --bs-border-radius-sm: 0.25rem;
+  --bs-border-radius-lg: 0.5rem;
+  --bs-border-color: #dee2e6;
+  --bs-border-color-translucent: rgba(0, 0, 0, 0.175);
+  --bs-primary-text-emphasis: #052c65;
+  --bs-secondary-text-emphasis: #2b2f32;
+  --bs-success-text-emphasis: #0a3622;
+  --bs-info-text-emphasis: #055160;
+  --bs-warning-text-emphasis: #664d03;
+  --bs-danger-text-emphasis: #58151c;
+  --bs-light-text-emphasis: #495057;
+  --bs-dark-text-emphasis: #495057;
+  --bs-primary-bg-subtle: #cfe2ff;
+  --bs-secondary-bg-subtle: #e2e3e5;
+  --bs-success-bg-subtle: #d1e7dd;
+  --bs-info-bg-subtle: #cff4fc;
+  --bs-warning-bg-subtle: #fff3cd;
+  --bs-danger-bg-subtle: #f8d7da;
+  --bs-light-bg-subtle: #fcfcfd;
+  --bs-dark-bg-subtle: #ced4da;
+  --bs-primary-border-subtle: #9ec5fe;
+  --bs-secondary-border-subtle: #c4c8cb;
+  --bs-success-border-subtle: #a3cfbb;
+  --bs-info-border-subtle: #9eeaf9;
+  --bs-warning-border-subtle: #ffe69c;
+  --bs-danger-border-subtle: #f1aeb5;
+  --bs-light-border-subtle: #e9ecef;
+  --bs-dark-border-subtle: #adb5bd;
+  --bs-nav-tabs-border-width: 1px;
+  --bs-nav-tabs-border-color: var(--bs-border-color);
+  --bs-nav-tabs-border-radius: 0.375rem;
+  --bs-nav-tabs-link-hover-border-color: #e9ecef #e9ecef var(--bs-border-color);
+  --bs-nav-tabs-link-active-color: #495057;
+  --bs-nav-tabs-link-active-bg: var(--bs-body-bg);
+  --bs-nav-tabs-link-active-border-color: var(--bs-border-color) var(--bs-border-color) var(--bs-body-bg);
+  --bs-box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --bs-box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --bs-backdrop-zindex: 1050;
+  --bs-backdrop-bg: #000;
+  --bs-backdrop-opacity: 0.5;
+  --bs-modal-zindex: 1055;
+  --bs-modal-width: 500px;
+  --bs-modal-padding: 1rem;
+  --bs-modal-margin: 0.5rem;
+  --bs-modal-color: #212529;
+  --bs-modal-bg: #fff;
+  --bs-modal-border-color: rgba(0, 0, 0, 0.175);
+  --bs-modal-border-width: 1px;
+  --bs-modal-border-radius: 0.5rem;
+  --bs-modal-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --bs-modal-inner-border-radius: calc(0.5rem - 1px);
+  --bs-modal-header-padding-x: 1rem;
+  --bs-modal-header-padding-y: 1rem;
+  --bs-modal-header-padding: 1rem 1rem;
+  --bs-modal-header-border-color: #dee2e6;
+  --bs-modal-header-border-width: 1px;
+  --bs-modal-title-line-height: 1.5;
+  --bs-modal-footer-gap: 0.5rem;
+  --bs-modal-footer-bg: transparent;
+  --bs-modal-footer-border-color: #dee2e6;
+  --bs-modal-footer-border-width: 1px;
+
+  .modal {
+    --bs-modal-bg: #fff;
+    --bs-modal-color: #212529;
+    --bs-modal-border-width: 1px;
+    --bs-modal-border-color: rgba(0, 0, 0, 0.175);
+    --bs-modal-border-radius: 0.5rem;
+    --bs-modal-box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --bs-modal-box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+
+  .modal-content {
+    border-radius: var(--bs-modal-border-radius, 0.5rem);
+    box-shadow: var(--bs-modal-box-shadow-sm, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075));
+  }
+
+  @media (min-width: 576px) {
+    .modal-content {
+      box-shadow: var(--bs-modal-box-shadow, 0 0.5rem 1rem rgba(0, 0, 0, 0.15));
+    }
+  }
+
+  // Avoid a blanket reset that overrides Bootstrap component styles.
+  &,
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  // Keep collapse behavior explicit in case host-page styles interfere.
+  .collapse:not(.show) {
+    display: none;
+  }
+
+  .collapsing {
+    height: 0;
+    overflow: hidden;
   }
 }
 
@@ -54,16 +166,19 @@ $font-size-base: 12px;
 
 #PTTChat {
   // virtual-scroller
-  @import "node_modules/vue-virtual-scroller/dist/vue-virtual-scroller";
+  @import "../../node_modules/vue-virtual-scroller/dist/vue-virtual-scroller";
 
   // Required
   @import "variables";
-  @import "node_modules/bootstrap/scss/functions";
-  @import "node_modules/bootstrap/scss/variables";
-  @import "node_modules/bootstrap/scss/mixins";
+  @import "../../node_modules/bootstrap/scss/functions";
+  @import "../../node_modules/bootstrap/scss/variables";
+  @import "../../node_modules/bootstrap/scss/maps";
+  @import "../../node_modules/bootstrap/scss/mixins";
+  @import "../../node_modules/bootstrap/scss/utilities";
   @import "fontsize";
-  @import "node_modules/bootstrap/scss/root";
-  @import "node_modules/bootstrap/scss/reboot";
+  @import "../../node_modules/bootstrap/scss/root";
+  @import "../../node_modules/bootstrap/scss/reboot";
+
   // reboot.scss html
   & {
     font-family: sans-serif;
@@ -71,6 +186,7 @@ $font-size-base: 12px;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   }
+
   // reboot.scss body
   & {
     margin: 0; // 1
@@ -82,38 +198,38 @@ $font-size-base: 12px;
     text-align: left; // 3
     background-color: $body-bg; // 2
   }
-  @import "node_modules/bootstrap/scss/type";
-  // @import "node_modules/bootstrap/scss/images";
-  // @import "node_modules/bootstrap/scss/code";
-  @import "node_modules/bootstrap/scss/grid";
-  @import "node_modules/bootstrap/scss/tables";
-  @import "node_modules/bootstrap/scss/forms";
-  @import "node_modules/bootstrap/scss/buttons";
-  @import "node_modules/bootstrap/scss/transitions";
-  @import "node_modules/bootstrap/scss/dropdown";
-  @import "node_modules/bootstrap/scss/button-group";
-  // @import "node_modules/bootstrap/scss/input-group";
-  // @import "node_modules/bootstrap/scss/custom-forms";
-  @import "node_modules/bootstrap/scss/nav";
-  @import "node_modules/bootstrap/scss/navbar";
-  @import "node_modules/bootstrap/scss/card";
-  // @import "node_modules/bootstrap/scss/breadcrumb";
-  // @import "node_modules/bootstrap/scss/pagination";
-  // @import "node_modules/bootstrap/scss/badge";
-  // @import "node_modules/bootstrap/scss/jumbotron";
-  @import "node_modules/bootstrap/scss/alert";
-  // @import "node_modules/bootstrap/scss/progress";
-  @import "node_modules/bootstrap/scss/media";
-  // @import "node_modules/bootstrap/scss/list-group";
-  @import "node_modules/bootstrap/scss/close";
-  // @import "node_modules/bootstrap/scss/toasts";
-  @import "node_modules/bootstrap/scss/modal";
-  // @import "node_modules/bootstrap/scss/tooltip";
-  // @import "node_modules/bootstrap/scss/popover";
-  // @import "node_modules/bootstra/carousep/scssl";
-  // @import "node_modules/bootstrap/scss/spinners";
-  @import "node_modules/bootstrap/scss/utilities";
-  @import "node_modules/bootstrap/scss/print";
+
+  @import "../../node_modules/bootstrap/scss/type";
+  // @import "../../node_modules/bootstrap/scss/images";
+  // @import "../../node_modules/bootstrap/scss/code";
+  @import "../../node_modules/bootstrap/scss/grid";
+  @import "../../node_modules/bootstrap/scss/tables";
+  @import "../../node_modules/bootstrap/scss/forms";
+  @import "../../node_modules/bootstrap/scss/buttons";
+  @import "../../node_modules/bootstrap/scss/transitions";
+  @import "../../node_modules/bootstrap/scss/dropdown";
+  @import "../../node_modules/bootstrap/scss/button-group";
+  // @import "../../node_modules/bootstrap/scss/input-group";
+  // @import "../../node_modules/bootstrap/scss/custom-forms";
+  @import "../../node_modules/bootstrap/scss/nav";
+  @import "../../node_modules/bootstrap/scss/navbar";
+  @import "../../node_modules/bootstrap/scss/card";
+  // @import "../../node_modules/bootstrap/scss/breadcrumb";
+  // @import "../../node_modules/bootstrap/scss/pagination";
+  // @import "../../node_modules/bootstrap/scss/badge";
+  // @import "../../node_modules/bootstrap/scss/jumbotron";
+  @import "../../node_modules/bootstrap/scss/alert";
+  // @import "../../node_modules/bootstrap/scss/progress";
+  // @import "../../node_modules/bootstrap/scss/list-group";
+  @import "../../node_modules/bootstrap/scss/close";
+  // @import "../../node_modules/bootstrap/scss/toasts";
+  @import "../../node_modules/bootstrap/scss/modal";
+  // @import "../../node_modules/bootstrap/scss/tooltip";
+  // @import "../../node_modules/bootstrap/scss/popover";
+  // @import "../../node_modules/bootstra/carousep/scssl";
+  // @import "../../node_modules/bootstrap/scss/spinners";
+  @import "../../node_modules/bootstrap/scss/helpers";
+  @import "../../node_modules/bootstrap/scss/utilities/api";
   @import "vueanimation";
 
   table {
@@ -131,108 +247,300 @@ $font-size-base: 12px;
     $darkenpercent: 30%;
     $clightness: lightness($color);
     $bglightness: lightness($bgcolor);
-    @if $bglightness > 55% {
-      $bglightness: ($bglightness - 100%) * $darkenpercent/100%/100% - 0.5;
-    } @else {
+
+    @if $bglightness >55% {
+      $bglightness: (
+        $bglightness - 100%) * $darkenpercent/100%/100% - 0.5;
+    }
+
+    @else {
       $bglightness: $bglightness * $darkenpercent/100%/100%;
     }
+
     $darken: $clightness * $bglightness;
-    $newcolor: adjust-color($color, $lightness: $darken);
-    @if $warning {
-      //@warn "#{$color $clightness} , #{$bgcolor $bglightness },#{$darken} -> #{lightness($newcolor)} ";
-    }
-    @return $newcolor;
+    $newcolor: adjust-color($color, $lightness: $darken
+    );
+
+  @if $warning {
+    //@warn "#{$color $clightness} , #{$bgcolor $bglightness },#{$darken} -> #{lightness($newcolor)} ";
   }
 
-  @each $name, $color in $ptt-theme-colors {
-    //@warn $name;
-    &.#{$name} {
-      .ptt-bg {
-        background-color: $color;
-      }
+  @return $newcolor;
+}
 
-      .ptt-chat-id {
-        color: darken-color($chat-id, $color, true);
-      }
-      .ptt-chat-time {
-        color: darken-color($chat-time, $color);
-      }
-      .ptt-chat-msg {
-        color: darken-color($chat-message, $color) !important;
-      }
+@each $name, $color in $ptt-theme-colors {
 
-      .ptt-chat-type {
-        color: darken-color($chat-type, $color);
-      }
-      .ptt-chat-type-n {
-        color: darken-color($chat-type-n, $color);
-      }
+  //@warn $name;
+  &.#{$name} {
+    --ptt-active-tab-border-bottom: #{$color};
+
+    .ptt-bg {
+      background-color: $color;
+    }
+
+    .ptt-chat-id {
+      color: darken-color($chat-id, $color, true);
+    }
+
+    .ptt-chat-time {
+      color: darken-color($chat-time, $color);
+    }
+
+    .ptt-chat-msg {
+      color: darken-color($chat-message, $color) !important;
+    }
+
+    .ptt-chat-type {
+      color: darken-color($chat-type, $color);
+    }
+
+    .ptt-chat-type-n {
+      color: darken-color($chat-type-n, $color);
     }
   }
+}
 
-  @each $name, $color in $ptt-theme-reversecolor {
-    &.#{$name} {
-      .ptt-border {
-        border: 1px solid $color !important;
-      }
-      .ptt-text {
-        color: $color !important;
-      }
-      .ptt-btnoutline {
-        color: $color;
-        @include button-outline-variant($color);
-      }
-      .nav-link.active,
-      .nav-item.show .nav-link {
-        color: $color;
-        background-color: $nav-tabs-link-active-bg;
-        border-color: $nav-tabs-link-active-border-color;
-      }
+@each $name, $color in $ptt-theme-reversecolor {
+  &.#{$name} {
+    .ptt-border {
+      border: 1px solid $color !important;
+    }
+
+    .ptt-text {
+      color: $color !important;
+    }
+
+    .ptt-btnoutline {
+      color: $color;
+      @include button-outline-variant($color);
+    }
+
+    .nav-link.active,
+    .nav-item.show .nav-link {
+      color: $color;
+      background-color: $nav-tabs-link-active-bg;
+      border-color: $nav-tabs-link-active-border-color;
     }
   }
+}
 }
 
 #PTTChat {
   &.position-absolute {
     position: absolute !important;
   }
+
   .position-absolute {
     position: absolute !important;
   }
+
   .position-relative {
     position: relative !important;
   }
+
   &.w-100 {
     width: 100% !important;
   }
 }
 
 #PTTChat {
+  .ptt-border-bottom {
+    border-bottom: 1px solid var(--bs-nav-tabs-border-color) !important;
+  }
+
+  .ptt-contents-border {
+    border-right: 1px solid var(--bs-nav-tabs-border-color) !important;
+    border-left: 1px solid var(--bs-nav-tabs-border-color) !important;
+  }
+
+  #PTTChat-navbar {
+    // border-bottom: 1px solid rgba(108, 117, 125, 0.45);
+    // border-bottom:none;
+  }
+
+  #PTTChat-navbar .nav-link {
+    // border: 1px solid rgba(108, 117, 125, 0.45);
+    // border-bottom: 0;
+    // border-radius: 0;
+    // margin-bottom: -1px;
+    // padding: 0.55rem 1rem;
+    // transition: background-color 0.15s ease, border-color 0.15s ease;  
+  }
+
+  #PTTChat-navbar .nav-link:not(.active) {
+    background-color: transparent;
+  }
+
+  #PTTChat-navbar .nav-link.active,
+  #PTTChat-navbar .nav-item.show .nav-link {
+    background-color: rgba(0, 0, 0, 0.04);
+    border-color: var(--bs-nav-tabs-border-color);
+    border-bottom: 1px solid var(--ptt-active-tab-border-bottom, #1d1d1d);
+    position: relative;
+    z-index: 2;
+  }
+
+  // Bootstrap 5 form controls rely on CSS vars; keep legacy white input look.
+  .form-control,
+  .form-select {
+    color: #212529;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    background-clip: padding-box;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    color: #212529;
+    background-color: #fff;
+    border-color: #86b7fe;
+  }
+
+  .form-control:disabled,
+  .form-control[disabled],
+  .form-select:disabled,
+  .form-select[disabled] {
+    color: #6c757d;
+    background-color: #dfe6ef;
+    border-color: #ced4da;
+    opacity: 1;
+  }
+
+  .form-control::placeholder {
+    color: #6c757d;
+    opacity: 1;
+  }
+
+  .form-check-input {
+    color: #212529;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+  }
+
+  .form-check-input:checked {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  .form-check-input:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+
+  // Keep dropdown menu readable on dark theme after Bootstrap 5 migration.
+  .dropdown-menu {
+    --bs-dropdown-bg: #fff;
+    --bs-dropdown-color: #212529;
+    --bs-dropdown-link-color: #212529;
+    --bs-dropdown-link-hover-color: #212529;
+    --bs-dropdown-link-hover-bg: #f8f9fa;
+    --bs-dropdown-border-color: rgba(0, 0, 0, 0.15);
+    --bs-dropdown-divider-bg: rgba(0, 0, 0, 0.15);
+    min-width: 11rem;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+
+  .dropdown-toggle {
+    border-width: 1px;
+  }
+
+  .ptt-comment-composer {
+    max-width: none;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .ptt-comment-composer>.row.my-2 {
+    --bs-gutter-x: 0;
+    align-items: center;
+    column-gap: 0.5rem;
+    margin-right: 0;
+    margin-left: 0;
+    flex-wrap: nowrap;
+  }
+
+  .ptt-comment-composer>.row.my-2>.col,
+  .ptt-comment-composer>.row.my-2>.col-2 {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .ptt-comment-composer>.row.my-2>.col {
+    min-width: 0;
+  }
+
+  .ptt-comment-composer>.row.my-2>.col-2 {
+    flex: 0 0 94px;
+    max-width: 94px;
+  }
+
+  #setnewcomment {
+    min-height: calc(1.5em + 0.75rem + 2px);
+  }
+
+  #setnewcommentbtn {
+    min-height: calc(1.5em + 0.75rem + 2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // Restore old log table visual style (thin grid + gray section headers).
+  #PTTChat-contents-log-main .table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 0;
+  }
+
+  #PTTChat-contents-log-main .table> :not(caption)>*>* {
+    border-bottom-width: 1px;
+  }
+
+  #PTTChat-contents-log-main .table th.text-center.bg-secondary {
+    color: #fff !important;
+    background-color: #6c757d !important;
+    box-shadow: inset 0 0 0 9999px #6c757d !important;
+  }
+
   .ptt-chat {
     font-weight: 500;
   }
+
   .ptt-chat-msg {
     word-break: break-word;
   }
+
   hr {
     border-top: 1px solid rgba(128, 128, 128, 0.5) !important;
   }
+
   .ptt-chat-msg a {
     text-decoration: underline !important;
   }
+
   // reference: https://codepen.io/svnt/pen/beEgre
   .dropdown-submenu {
     position: relative;
   }
-  .dropdown-submenu > .dropdown-menu {
+
+  .dropdown-submenu>.dropdown-menu {
     top: 0;
     left: 50%;
     margin-top: -6px;
   }
-  .dropdown-submenu:hover > .dropdown-menu {
+
+  .dropdown-submenu:hover>.dropdown-menu {
     display: block;
   }
-  .dropdown-submenu > a:after {
+
+  .dropdown-submenu>a:after {
     display: block;
     content: " ";
     float: right;
@@ -243,11 +551,13 @@ $font-size-base: 12px;
     margin-top: 5px;
     margin-right: -10px;
   }
+
   .transition-smooth {
     height: 0;
     overflow: hidden;
     transition: 1s;
   }
+
   .col-form-label {
     padding-top: 4.75px;
     padding-bottom: 4.75px;
@@ -261,16 +571,43 @@ $font-size-base: 12px;
 #container.position-relative {
   position: relative !important;
 }
+
+/* Bootstrap backdrop is appended to body, outside #PTTChat scope. */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+}
+
+.modal-backdrop.fade {
+  opacity: 0;
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
 #pttchatparent.d-flex,
 #fakeparent.d-flex {
   display: flex !important;
 }
+
 #fakeparent.flex-row {
   flex-direction: row !important;
 }
+
 #fakeparent.flex-column {
   flex-direction: column !important;
 }
+
 #PTTChat.h-100 {
   height: 100% !important;
 }

@@ -1,7 +1,7 @@
 <template>
   <div
     id="PTTChat-contents"
-    class="tab-content ptt-text h-100"
+    class="tab-content rounded-bottom ptt-text ptt-contents-border h-100"
   >
     <!-------- 聊天室 -------->
     <div

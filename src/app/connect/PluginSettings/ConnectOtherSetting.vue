@@ -2,7 +2,7 @@
 <template>
   <div
     id="PTTConnect-OtherSetting"
-    class="form-row px-0 mx-0 col-12 my-2"
+    class="row px-0 mx-0 col-12 my-2"
   >
     <legend class="col-form-label col-3 pt-0">
       其他設定

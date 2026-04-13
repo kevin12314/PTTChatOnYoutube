@@ -1,5 +1,6 @@
 
 import InitApp from 'src/app/appindex'
+import { collapseAction } from 'src/bootstrap'
 import ChangeLog from 'src/ChangeLog'
 import { ThemeCheck } from 'src/library'
 import gaUseExtensionEvent from 'src/ga/useExtensionEvent'
@@ -64,10 +65,10 @@ export default function InitHT (messageposter, siteName) {
         if (collapseEnd || !collapseStart) {
           if (now === '0') {
             $('#PTTMainBtn').css('display', 'block')
-            $('#PTTMain').collapse('show')
+            collapseAction(document.getElementById('PTTMain'), 'show')
           } else {
             $('#PTTMainBtn').css('display', 'none')
-            $('#PTTMain').collapse('hide')
+            collapseAction(document.getElementById('PTTMain'), 'hide')
           }
           now = (now === pluginwidth0 ? pluginwidth : pluginwidth0)
           $('#pttchatparent').css('flex', '0 0 ' + now + 'px')
@@ -96,8 +97,6 @@ export default function InitHT (messageposter, siteName) {
           defaultSetting()
         }
       })
-      $(document).on('show.bs.collapse hide.bs.collapse', '#PTTMain', function () { collapseStart = true; collapseEnd = false })
-      $(document).on('shown.bs.collapse hidden.bs.collapse', '#PTTMain', function () { collapseStart = false; collapseEnd = true })
       parent.append(fakeparent)
       fakeparent.append(defaultVideoHandler)
       defaultVideoHandler.append(defaultVideo)
@@ -105,6 +104,13 @@ export default function InitHT (messageposter, siteName) {
       $('.reopen-toolbar').css({ 'z-index': '302' })
       InitApp(PTTChatHandler, WhiteTheme, true, messageposter, siteName, true)
       ChangeLog()
+      const mainPanel = document.getElementById('PTTMain')
+      if (mainPanel) {
+        mainPanel.addEventListener('show.bs.collapse', () => { collapseStart = true; collapseEnd = false })
+        mainPanel.addEventListener('hide.bs.collapse', () => { collapseStart = true; collapseEnd = false })
+        mainPanel.addEventListener('shown.bs.collapse', () => { collapseStart = false; collapseEnd = true })
+        mainPanel.addEventListener('hidden.bs.collapse', () => { collapseStart = false; collapseEnd = true })
+      }
       tryinsholotools = -10
     } else {
       tryinsholotools--

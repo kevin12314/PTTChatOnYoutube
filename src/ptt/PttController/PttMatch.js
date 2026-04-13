@@ -9,9 +9,9 @@ export function PttMatch (pattern, flags = undefined) {
   let result
   const reg = GetReg(pattern, flags)
   if (!this.state.screenUpdated) {
-    const sElement = $("[data-type='bbsline']", this.window.document)
-    for (let i = 0; i < sElement.length; i++) {
-      const txt = sElement[i].textContent
+    const screenElements = this.window.document.querySelectorAll("[data-type='bbsline']")
+    for (let i = 0; i < screenElements.length; i++) {
+      const txt = screenElements[i].textContent
       this.state.screen.push(txt)
       if (!result) result = reg.exec(txt)
     }
