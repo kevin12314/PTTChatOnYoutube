@@ -97,8 +97,8 @@ export default function ChangeLog () {
 
   // data-backdrop should be empty
   const modal = `
-    <div id="PTTChangeLog" class="modal fade" tabindex="-1" aria-hidden="true" style="color: #000; overflow: overlay;">
-      <div class="modal-dialog modal-dialog modal-dialog-centered">
+    <div id="PTTChangeLog" class="modal fade" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title">PTTChatOnYoutube更新日誌</h4>
@@ -114,7 +114,7 @@ export default function ChangeLog () {
       </div>
     </div>`
   const pttChat = document.getElementById('PTTChat')
-  if (pttChat) pttChat.insertAdjacentHTML('beforeend', modal)
+  if (pttChat) document.body.insertAdjacentHTML('beforeend', modal)
   showModal(document.getElementById('PTTChangeLog'), { backdrop: true, keyboard: false })
 
   /**
@@ -124,15 +124,25 @@ export default function ChangeLog () {
    * @returns {object} Logs to show
    */
   function GetChangeLogInfo (info, major, minor) {
+    if (+major > +nowVerion[0]) return info
+    if (+major === +nowVerion[0] && +minor > +nowVerion[1]) return info
     const newInfo = allChangeLogInfo['v_' + major + '_' + minor]
-    if (+minor > nowVerion[1] && +major > nowVerion[0]) return info
     if (newInfo !== undefined) {
       for (const key in newInfo) {
         info[key] = info[key].concat(newInfo[key])
       }
     }
-    if ((+minor + 1) <= nowVerion[1]) return GetChangeLogInfo(info, +major, +minor + 1)
-    if ((+major + 1) <= nowVerion[0]) return GetChangeLogInfo(info, +major + 1, 0)
+    if (+major < +nowVerion[0]) {
+      // 還在舊 major：先嘗試下一個 minor，若無對應 key 才跳下一個 major
+      if (allChangeLogInfo['v_' + major + '_' + (+minor + 1)] !== undefined) {
+        return GetChangeLogInfo(info, +major, +minor + 1)
+      } else {
+        return GetChangeLogInfo(info, +major + 1, 0)
+      }
+    } else {
+      // 已在目前 major：以 nowVerion[1] 為上限
+      if ((+minor + 1) <= +nowVerion[1]) return GetChangeLogInfo(info, +major, +minor + 1)
+    }
     return info
   }
   /**

@@ -50,7 +50,7 @@
     "standard": "standard"
   },
   "name": "pttchatonyoutube",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "packageManager": "pnpm@9.15.0",
   "description": "Connect ptt pushes to youtube chatroom",
   "author": "Zoosewu, crimsonmoon9, kevin12314",
