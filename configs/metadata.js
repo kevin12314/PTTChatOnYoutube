@@ -1,8 +1,8 @@
 const pkg = require('../package.json')
 module.exports = {
   license: pkg.license,
-  name: 'Youtube聊天室顯示PTT推文',
-  namespace: 'https://github.com/zoosewu/PTTChatOnYoutube',
+  name: 'Youtube聊天室顯示PTT推文Next',
+  namespace: 'https://github.com/kevin12314/PTTChatOnYoutube',
   description: '連結PTT推文到Youtube聊天室  讓你簡單追實況搭配推文',
   match: [
     'https://www.youtube.com/*',
@@ -31,9 +31,9 @@ module.exports = {
   'run-at': 'document-start',
   require: [],
   homepageURL:
-    'https://github.com/zoosewu/PTTChatOnYoutube/tree/master/homepage',
+    'https://github.com/kevin12314/PTTChatOnYoutube/tree/master/homepage',
   downloadURL:
-    'https://greasyfork.org/scripts/418469-pttchatonyt/code/PttChatOnYt.user.js',
+    'https://github.com/kevin12314/PTTChatOnYoutube/releases/latest/download/PttChatOnYtNext.user.js',
   updateURL:
-    'https://greasyfork.org/scripts/418469-pttchatonyt/code/PttChatOnYt.user.js'
+    'https://github.com/kevin12314/PTTChatOnYoutube/releases/latest/download/PttChatOnYtNext.user.js'
 }

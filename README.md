@@ -1,8 +1,29 @@
-PTTChatOnYoutube - Youtube聊天室顯示PTT推文
+PTTChatOnYoutube - Youtube聊天室顯示PTT推文Next
 ========================================
-![GitHub license](https://img.shields.io/github/license/zoosewu/pttchatonyoutube) [![Code style](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![GitHub package.json version](https://img.shields.io/github/package-json/v/zoosewu/pttchatonyoutube?style=plastic) [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/zoosewu/pttchatonyoutube?sort=semver)](https://greasyfork.org/zh-TW/scripts/418469-pttchatonyoutube) ![GitHub Release Date](https://img.shields.io/github/release-date/zoosewu/pttchatonyoutube)
+![GitHub license](https://img.shields.io/github/license/kevin12314/pttchatonyoutube) [![Code style](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![GitHub package.json version](https://img.shields.io/github/package-json/v/kevin12314/pttchatonyoutube?style=plastic) [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/kevin12314/pttchatonyoutube?sort=semver)](https://greasyfork.org/zh-TW/scripts/418469-pttchatonyoutube) ![GitHub Release Date](https://img.shields.io/github/release-date/kevin12314/pttchatonyoutube)
 
-如果你想了解套件如何使用請[點我](https://github.com/zoosewu/PTTChatOnYoutube/tree/master/homepage)
+如果你想了解套件如何使用請[點我](https://github.com/kevin12314/PTTChatOnYoutube/tree/master/homepage)
+
+## 專案說明
+
+此腳本基於原始專案 [zoosewu/PTTChatOnYoutube](https://github.com/zoosewu/PTTChatOnYoutube) 而來，並在此基礎上調整與修改了部分功能。
+
+修改內容可參考專案中的 ChangeLog 或 Git commit 紀錄。
+
+## 4.0.0 重要修改
+
+- 修正 YouTube 頁面偶發誤跑在 iframe 的問題，避免初始化失敗或按鈕消失。
+- 修正直播與直播存檔判斷邏輯，避免誤判成一般影片。
+- 修正直播模式下留言自動更新與聊天室自動捲動問題。
+- 修正直播存檔播放時，PTT 留言無法依影片進度對齊的問題。
+- 修正 YouTube SPA 導航切換（首頁、直播、影片）時資料不同步問題，包含影片資訊、文章資訊、聊天室內容與登入狀態。
+- 修正點擊套件分頁會觸發 YouTube 頁面重新整理的問題。
+- 修正 YouTube Trusted Types 啟用後造成套件無法正常運作的問題。
+- 修正登入流程可能出現跨網域 SecurityError 導致失敗的問題。
+- 修正登入或頁面切換時可能發生的 DOM null removeChild 錯誤。
+- 改善頁面切換後 PTT iframe 重建流程，降低重新登入後按鈕無反應情況。
+- 調整套件初始高度，未設定時自動套用目前網站聊天室高度。
+- 更新前端相容性，改善新版環境下按鈕與主介面不顯示問題。
 
 ## 如何開始參與開發
 

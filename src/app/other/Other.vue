@@ -27,12 +27,12 @@ Z:推文數搜尋  G:標記搜尋   A:稿酬搜尋
     <div class="text-center">
       <other-button
         :id="'home'"
-        :href="'https://github.com/zoosewu/PTTChatOnYoutube/tree/master/homepage'"
+        :href="'https://github.com/kevin12314/PTTChatOnYoutube/tree/master/homepage'"
         :title="'腳本介紹'"
       />
       <other-button
         :id="'github'"
-        :href="'https://github.com/zoosewu/PTTChatOnYoutube/tree/master'"
+        :href="'https://github.com/kevin12314/PTTChatOnYoutube/tree/master'"
         :title="'Github'"
       />
       <other-button

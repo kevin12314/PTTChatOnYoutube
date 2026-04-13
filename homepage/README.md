@@ -1,9 +1,30 @@
-PTTChatOnYoutube - Youtube聊天室顯示PTT推文
+PTTChatOnYoutube - Youtube聊天室顯示PTT推文Next
 =======================
-![GitHub license](https://img.shields.io/github/license/zoosewu/pttchatonyoutube) [![Code style](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![GitHub package.json version](https://img.shields.io/github/package-json/v/zoosewu/pttchatonyoutube?style=plastic) [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/zoosewu/pttchatonyoutube?sort=semver)](https://greasyfork.org/zh-TW/scripts/418469-pttchatonyoutube) ![GitHub Release Date](https://img.shields.io/github/release-date/zoosewu/pttchatonyoutube)
+![GitHub license](https://img.shields.io/github/license/kevin12314/pttchatonyoutube) [![Code style](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![GitHub package.json version](https://img.shields.io/github/package-json/v/kevin12314/pttchatonyoutube?style=plastic) [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/kevin12314/pttchatonyoutube?sort=semver)](https://greasyfork.org/zh-TW/scripts/418469-pttchatonyoutube) ![GitHub Release Date](https://img.shields.io/github/release-date/kevin12314/pttchatonyoutube)
 
 在Youtube及其他[支援網站](#支援網站-點擊項目可跳轉至使用教學)觀看實況或實況紀錄時載入PTT討論串推文
-如果你想了解如何參與開發請[點我](https://github.com/zoosewu/PTTChatOnYoutube)
+如果你想了解如何參與開發請[點我](https://github.com/kevin12314/PTTChatOnYoutube)
+
+## 專案說明
+
+此腳本基於原始專案 [zoosewu/PTTChatOnYoutube](https://github.com/zoosewu/PTTChatOnYoutube) 而來，並在此基礎上調整與修改了部分功能。
+
+修改內容可參考專案中的 ChangeLog 或 Git commit 紀錄。
+
+## 4.0.0 重要修改
+
+- 修正 YouTube 頁面偶發誤跑在 iframe 的問題，避免初始化失敗或按鈕消失。
+- 修正直播與直播存檔判斷邏輯，避免誤判成一般影片。
+- 修正直播模式下留言自動更新與聊天室自動捲動問題。
+- 修正直播存檔播放時，PTT 留言無法依影片進度對齊的問題。
+- 修正 YouTube SPA 導航切換（首頁、直播、影片）時資料不同步問題，包含影片資訊、文章資訊、聊天室內容與登入狀態。
+- 修正點擊套件分頁會觸發 YouTube 頁面重新整理的問題。
+- 修正 YouTube Trusted Types 啟用後造成套件無法正常運作的問題。
+- 修正登入流程可能出現跨網域 SecurityError 導致失敗的問題。
+- 修正登入或頁面切換時可能發生的 DOM null removeChild 錯誤。
+- 改善頁面切換後 PTT iframe 重建流程，降低重新登入後按鈕無反應情況。
+- 調整套件初始高度，未設定時自動套用目前網站聊天室高度。
+- 更新前端相容性，改善新版環境下按鈕與主介面不顯示問題。
 
 **套件主要有以下兩個功能：**
 
@@ -11,7 +32,7 @@ PTTChatOnYoutube - Youtube聊天室顯示PTT推文
 
 2. **實況紀錄** (目前僅支援Youtube的實況紀錄)： 根據影片時間顯示當時的推文
 <p align='center'>
-    <img src='https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/samplemain.gif' width='70%'>
+    <img src='https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/samplemain.gif' width='70%'>
 </p>
 
 ## 支援網站 (點擊項目可跳轉至使用教學)：
@@ -82,13 +103,13 @@ PTTChatOnYoutube - Youtube聊天室顯示PTT推文
 
     * **註：** 如果離開網頁時有個視窗一閃而過，那是背景執行的term.ptt.cc關閉視窗的警告動作，是正常現象。
 
-[腳本介紹](https://github.com/zoosewu/PTTChatOnYoutube/tree/master/homepage): 如果你想想查看詳細的腳本介紹。
+[腳本介紹](https://github.com/kevin12314/PTTChatOnYoutube/tree/master/homepage): 如果你想想查看詳細的腳本介紹。
 
-[Github](https://github.com/zoosewu/PTTChatOnYoutube/tree/master): 如果你想查看完整程式碼或是想要自己下載腳本測試、修改。
+[Github](https://github.com/kevin12314/PTTChatOnYoutube/tree/master): 如果你想查看完整程式碼或是想要自己下載腳本測試、修改。
 
-[回報問題或建議](https://github.com/zoosewu/PTTChatOnYoutube/issues): 有任何建議或是問題都可以在這邊回報，方便我追蹤進度。
+[回報問題或建議](https://github.com/kevin12314/PTTChatOnYoutube/issues): 有任何建議或是問題都可以在這邊回報，方便我追蹤進度。
 
-如果你沒有github帳號，也可以依照[問題回報範例](https://github.com/zoosewu/PTTChatOnYoutube/blob/master/.github/ISSUE_TEMPLATE/bug-report.md)及[建議範例](https://github.com/zoosewu/PTTChatOnYoutube/blob/master/.github/ISSUE_TEMPLATE/feature-request.md)在PTT內私信給我(Zoosewu)。
+如果你沒有github帳號，也可以依照[問題回報範例](https://github.com/kevin12314/PTTChatOnYoutube/blob/master/.github/ISSUE_TEMPLATE/bug-report.md)及[建議範例](https://github.com/kevin12314/PTTChatOnYoutube/blob/master/.github/ISSUE_TEMPLATE/feature-request.md)在PTT內私信給我(Zoosewu)。
 
 ## 腳本功能
 套件所有資料全部都在你的瀏覽器處理，用你的瀏覽器撈資料再顯示出來。
@@ -104,7 +125,7 @@ PTTChatOnYoutube - Youtube聊天室顯示PTT推文
 
 ## 贊助
 
-如果你覺得這個套件好用，歡迎[點我](https://qr.opay.tw/eZHf2)贊助或使用下方QR Code。
+如果你覺得這個套件好用，歡迎[點我](https://qr.opay.tw/eZHf2)贊助原開發者zoosewu或使用下方QR Code。
 
 [![](https://payment.opay.tw/Upload/Broadcaster/2303549/QRcode/QRCode_C65AA1C8A89CB53AF4D93286E44468BF.png "贊助連結")](https://qr.opay.tw/eZHf2)
 
@@ -119,7 +140,7 @@ let isTopframe = (window.top === window.self);
 if (!isTopframe) throw "[Script Stopped: This script should run in top frame only.]";
 ```
 新增完之後應該長這樣：
-![在PTT腳本附加額外程式碼的正確位置](https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/addscript.png "腳本間加程式碼示意圖")
+![在PTT腳本附加額外程式碼的正確位置](https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/addscript.png "腳本間加程式碼示意圖")
 
 **有時候P的按鈕沒有冒出來給我用**
 
@@ -161,22 +182,22 @@ if (!isTopframe) throw "[Script Stopped: This script should run in top frame onl
 
 ## 其他預覽圖
 <p align='center'>
-    <img src='https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/sample1.png' width='70%'>
+    <img src='https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/sample1.png' width='70%'>
 </p>
 <p align='center'>
-    <img src='https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/sample2.png' width='70%'>
+    <img src='https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/sample2.png' width='70%'>
 </p>
 <p align='center'>
-    <img src='https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/sample3.png' width='70%'>
+    <img src='https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/sample3.png' width='70%'>
 </p>
 <p align='center'>
-    <img src='https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/sample4.png' width='70%'>
+    <img src='https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/sample4.png' width='70%'>
 </p>
 <p align='center'>
-    <img src='https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/sample5.png' width='70%'>
+    <img src='https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/sample5.png' width='70%'>
 </p>
 <p align='center'>
-    <img src='https://raw.githubusercontent.com/zoosewu/PTTChatOnYoutube/master/images/sample6.png' width='70%'>
+    <img src='https://raw.githubusercontent.com/kevin12314/PTTChatOnYoutube/master/images/sample6.png' width='70%'>
 </p>
 
 ## 聲明
