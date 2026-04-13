@@ -53,7 +53,7 @@
   "version": "4.0.0",
   "packageManager": "pnpm@9.15.0",
   "description": "Connect ptt pushes to youtube chatroom",
-  "author": "Zoosewu, crimsonmoon9",
+  "author": "Zoosewu, crimsonmoon9, kevin12314",
   "license": "MIT",
   "standard": {
     "globals": [
