@@ -11,6 +11,9 @@ PTTChatOnYoutubeNext - Youtube聊天室顯示PTT推文Next
 
 修改內容可參考專案中的 ChangeLog 或 Git commit 紀錄。
 
+- 原作者：Zoosewu
+- 原脚本：https://greasyfork.org/zh-TW/scripts/418469-pttchatonyoutube
+
 ## 4.0.0 重要修改
 
 - 修正 YouTube 頁面偶發誤跑在 iframe 的問題，避免初始化失敗或按鈕消失。
