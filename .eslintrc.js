@@ -6,7 +6,8 @@ module.exports = {
   extends: ['plugin:vue/recommended', 'standard', 'eslint:recommended'],
   parser: 'vue-eslint-parser',
   parserOptions: {
-    parser: 'babel-eslint'
+    parser: '@babel/eslint-parser',
+    requireConfigFile: false
   },
   ignorePatterns: ['node_modules/*', 'dist/*', 'local/*'],
   rules: {

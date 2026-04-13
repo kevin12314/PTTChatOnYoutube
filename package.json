@@ -1,11 +1,11 @@
 {
   "devDependencies": {
-    "@popperjs/core": "^2.11.8",
     "@babel/core": "^7.15.5",
+    "@babel/eslint-parser": "^7.28.6",
+    "@popperjs/core": "^2.11.8",
     "@vue/compiler-sfc": "^3.5.22",
-    "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.2",
-    "bootstrap": "^5.3.3",
+    "bootstrap": "^5.3.8",
     "crypto-js": "^4.2.0",
     "css-loader": "^5.2.7",
     "eslint": "^7.32.0",
