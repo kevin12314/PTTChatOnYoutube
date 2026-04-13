@@ -34,7 +34,7 @@
     <!-------- PTT畫面 -------->
     <div
       id="PTTChat-contents-PTT"
-      class="tab-pane h-100 row fade"
+      class="tab-pane h-100 w-100 mx-0 fade"
       role="tabpanel"
       aria-labelledby="nav-item-PTT"
     >

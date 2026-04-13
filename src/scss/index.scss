@@ -353,20 +353,6 @@ $font-size-base: 12px;
     border-left: 1px solid var(--bs-nav-tabs-border-color) !important;
   }
 
-  #PTTChat-navbar {
-    // border-bottom: 1px solid rgba(108, 117, 125, 0.45);
-    // border-bottom:none;
-  }
-
-  #PTTChat-navbar .nav-link {
-    // border: 1px solid rgba(108, 117, 125, 0.45);
-    // border-bottom: 0;
-    // border-radius: 0;
-    // margin-bottom: -1px;
-    // padding: 0.55rem 1rem;
-    // transition: background-color 0.15s ease, border-color 0.15s ease;  
-  }
-
   #PTTChat-navbar .nav-link:not(.active) {
     background-color: transparent;
   }

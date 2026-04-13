@@ -1,7 +1,7 @@
 <template>
   <div
     id="PTTChat-contents-PTT-main"
-    class="h-100 d-flex justify-content-center px-0"
+    class="h-100 w-100 d-flex justify-content-start overflow-hidden px-0"
   >
     <ptt-screen-iframe
       ref="ifm"
