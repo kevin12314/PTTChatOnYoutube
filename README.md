@@ -1,4 +1,4 @@
-PTTChatOnYoutube - Youtube聊天室顯示PTT推文Next
+PTTChatOnYoutubeNext - Youtube聊天室顯示PTT推文Next
 ========================================
 ![GitHub license](https://img.shields.io/github/license/kevin12314/pttchatonyoutube) [![Code style](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) ![GitHub package.json version](https://img.shields.io/github/package-json/v/kevin12314/pttchatonyoutube?style=plastic) [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/kevin12314/pttchatonyoutube?sort=semver)](https://greasyfork.org/zh-TW/scripts/418469-pttchatonyoutube) ![GitHub Release Date](https://img.shields.io/github/release-date/kevin12314/pttchatonyoutube)
 
