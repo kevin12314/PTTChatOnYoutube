@@ -289,7 +289,7 @@ const testchat = {
       }
       let msg = ''
       let m = i + ''
-      switch (i % 4) {
+      switch (i % 6) {
         case 0:
           m += filterXSS('太神啦 https://youtu.be/23y5h8kQsv8?t=4510 太神啦 https://www.youtube.com/watch?t=1237&v=Suab3SD1rbI&feature=youtu.be')
           break
@@ -300,6 +300,12 @@ const testchat = {
           m += filterXSS('太神啦 https://i.imgur.com/m8VTnyA.png 太神啦 https://m.youtube.com/watch?v=8p-JW2RtLoY&feature=youtu.be')
           break
         case 3:
+          m += filterXSS('測 smoke 連結 https://i.urusai.cc/QKcdY.png 太神啦 https://imgur.com/2igxFsX')
+          break
+        case 4:
+          m += filterXSS('測 host 圖床 https://i.meee.com.tw/AlQ0SaA')
+          break
+        case 5:
           m += filterXSS('太神啦 https://hololive.jetri.co/#/watch #1WHqSb2l (C_Chat)')
           break
         default:
@@ -313,8 +319,8 @@ const testchat = {
         const postcontent = AidResult[3]
         const aidResult = /(#[a-zA-Z0-9_-]+) \(([a-zA-Z0-9_-]+)\)/.exec(aid)
         const search = aidResult[2] + ',' + aidResult[1]
-        m = precontent + '<u onclick="this.parentNode.AddAnySrarch(`' + search + '`)" style="cursor: pointer;">' + aid + '</u>' + postcontent
-        if (showAllLog) console.log(precontent + '<u onclick="this.parentNode.AddAnySrarch(' + search + ')">' + aid + '</u>' + postcontent)
+        m = precontent + '<u data-any-search="' + search + '" style="cursor: pointer;">' + aid + '</u>' + postcontent
+        if (showAllLog) console.log(precontent + '<u data-any-search="' + search + '">' + aid + '</u>' + postcontent)
       }
       let result = /(.*?)(\bhttps?:\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])(.*)/ig.exec(m)
       let ParseTimeLimit = 5
@@ -322,7 +328,7 @@ const testchat = {
         const prestring = result[1]
         const linkstring = result[2]
         if (prestring !== '') msg = msg + prestring
-        msg = msg + '<a href="' + linkstring + '" target="_blank" rel="noopener noreferrer" class="ptt-chat-msg" ref="link' + (5 - ParseTimeLimit) + '" onmouseover="this.parentNode.mouseEnter(this.href)" onmouseleave="this.parentNode.mouseLeave(this.href)">' + linkstring + '</a>'
+        msg = msg + '<a href="' + linkstring + '" target="_blank" rel="noopener noreferrer" class="ptt-chat-msg" ref="link' + (5 - ParseTimeLimit) + '">' + linkstring + '</a>'
         m = result[3]
         result = /(.*?)(\bhttps?:\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])(.*)/ig.exec(m)
         ParseTimeLimit--

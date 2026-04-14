@@ -4,6 +4,17 @@ const webpack = require('webpack')
 const { VueLoaderPlugin } = require('vue-loader')
 
 const trustedTypesBootstrap = `${fs.readFileSync(path.resolve(__dirname, '../src/initTrustedTypes.js'), 'utf8').trimEnd()}\n;`
+const userscriptBuildPath = path.resolve(__dirname, '../dist/main.user.js')
+const userscriptReleasePath = path.resolve(__dirname, '../dist/PttChatOnYtNext.user.js')
+
+class SyncUserscriptReleaseNamePlugin {
+  apply (compiler) {
+    compiler.hooks.afterEmit.tap('SyncUserscriptReleaseNamePlugin', () => {
+      if (!fs.existsSync(userscriptBuildPath)) return
+      fs.copyFileSync(userscriptBuildPath, userscriptReleasePath)
+    })
+  }
+}
 
 module.exports = {
   context: path.resolve(__dirname, '../'),
@@ -66,6 +77,7 @@ module.exports = {
       raw: true,
       entryOnly: true
     }),
+    new SyncUserscriptReleaseNamePlugin(),
     new VueLoaderPlugin(),
     new webpack.ProvidePlugin({
       Vuex: 'vuex',

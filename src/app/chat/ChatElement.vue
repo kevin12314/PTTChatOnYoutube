@@ -43,6 +43,16 @@ export default {
     spaceStyle: { type: Object, required: true },
     activeChat: { type: Number, required: true }
   },
+  data () {
+    return {
+      previewTimer: null,
+      previewDelay: 500,
+      previewSourceUrl: '',
+      mouseOverHandler: null,
+      mouseOutHandler: null,
+      clickHandler: null
+    }
+  },
   computed: {
     timeH: function () { return paddingLeft(this.item.time.getHours(), +2) },
     timem: function () { return paddingLeft(this.item.time.getMinutes(), +2) },
@@ -56,7 +66,7 @@ export default {
       const color = 'rgba(128, 128, 128, ' + isUnchat + ')'
       return { backgroundColor: color, transition: '2s' }
     },
-    ...Vuex.mapGetters(['getDisableCommentGray'])
+    ...Vuex.mapGetters(['getDisableCommentGray', 'previewImage'])
   },
   watch: {
     activeChat: function () { this.$_ChatElementMessage_GrayCheck() }
@@ -64,23 +74,73 @@ export default {
   mounted () {
     if (!this.getDisableCommentGray) this.$_ChatElementMessage_GrayCheck()
     this.$nextTick(function () {
-      this.$refs.p.mouseEnter = this.$_ChatElementMessage_MoueseEnter
-      this.$refs.p.mouseLeave = this.$_ChatElementMessage_MoueseLeave
-      this.$refs.p.AddAnySrarch = this.$_ChatElementMessage_AddAnySrarch
+      this.mouseOverHandler = (event) => {
+        const linkElement = event.target.closest('a[href]')
+        if (!linkElement || !this.$refs.p.contains(linkElement)) return
+        if (event.relatedTarget && linkElement.contains(event.relatedTarget)) return
+        this.$_ChatElementMessage_MoueseEnter(linkElement.href, event)
+      }
+      this.mouseOutHandler = (event) => {
+        const linkElement = event.target.closest('a[href]')
+        if (!linkElement || !this.$refs.p.contains(linkElement)) return
+        if (event.relatedTarget && linkElement.contains(event.relatedTarget)) return
+        this.$_ChatElementMessage_MoueseLeave(linkElement.href, event)
+      }
+      this.clickHandler = (event) => {
+        const searchElement = event.target.closest('[data-any-search]')
+        if (!searchElement || !this.$refs.p.contains(searchElement)) return
+        event.preventDefault()
+        this.$_ChatElementMessage_AddAnySrarch(searchElement.dataset.anySearch)
+      }
+      this.$refs.p.addEventListener('mouseover', this.mouseOverHandler)
+      this.$refs.p.addEventListener('mouseout', this.mouseOutHandler)
+      this.$refs.p.addEventListener('click', this.clickHandler)
     })
+  },
+  beforeUnmount () {
+    this.$_ChatElementMessage_ClearPreviewTimer()
+    if (this.$refs.p && this.mouseOverHandler) this.$refs.p.removeEventListener('mouseover', this.mouseOverHandler)
+    if (this.$refs.p && this.mouseOutHandler) this.$refs.p.removeEventListener('mouseout', this.mouseOutHandler)
+    if (this.$refs.p && this.clickHandler) this.$refs.p.removeEventListener('click', this.clickHandler)
+    if (this.previewImage === this.previewSourceUrl) this.$store.dispatch('previewImage', '')
   },
   updated () { if (showScrollLog) console.log('updated, listIndex, chatIndex, msg', this.item.id, this.item.msg) },
   methods: {
+    $_ChatElementMessage_ClearPreviewTimer () {
+      if (this.previewTimer !== null) {
+        clearTimeout(this.previewTimer)
+        this.previewTimer = null
+      }
+    },
     $_ChatElementMessage_GrayCheck () {
       if (reportMode) console.log('GrayCheck', this.item, 'id', this.item.id, 'index', this.index, 'activeChat', this.activeChat, this.item, 'id>activeChat', this.item.id > this.activeChat, '->', this.item.gray, 'getDisableCommentGray', this.getDisableCommentGray)
       if (this.index > this.activeChat && !this.item.gray) this.$emit('updategray', this.index, true)
       else if (this.index <= this.activeChat && this.item.gray) this.$emit('updategray', this.index, false)
     },
-    $_ChatElementMessage_MoueseEnter (url) {
-      this.$store.dispatch('previewImage', url)
+    $_ChatElementMessage_UpdatePreviewPointer (mouseEvent) {
+      if (!mouseEvent) return
+      window.dispatchEvent(new CustomEvent('pttchat-preview-pointer', {
+        detail: {
+          x: mouseEvent.clientX,
+          y: mouseEvent.clientY
+        }
+      }))
     },
-    $_ChatElementMessage_MoueseLeave (url) {
-      this.$store.dispatch('previewImage', '')
+    $_ChatElementMessage_MoueseEnter (url, mouseEvent) {
+      this.$_ChatElementMessage_ClearPreviewTimer()
+      this.$_ChatElementMessage_UpdatePreviewPointer(mouseEvent)
+      if (this.previewImage === this.previewSourceUrl) this.$store.dispatch('previewImage', '')
+      this.previewSourceUrl = url
+      this.previewTimer = window.setTimeout(() => {
+        if (this.previewSourceUrl === url) this.$store.dispatch('previewImage', url)
+        this.previewTimer = null
+      }, this.previewDelay)
+    },
+    $_ChatElementMessage_MoueseLeave (url, mouseEvent) {
+      this.$_ChatElementMessage_ClearPreviewTimer()
+      this.$_ChatElementMessage_UpdatePreviewPointer(mouseEvent)
+      if (this.previewImage === this.previewSourceUrl) this.$store.dispatch('previewImage', '')
+      this.previewSourceUrl = ''
     },
     $_ChatElementMessage_AddAnySrarch (search) {
       if (reportMode) console.log('click addAnySearch')
