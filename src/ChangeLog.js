@@ -17,6 +17,13 @@ export default function ChangeLog () {
   function AddChangeLogInfo () {
     const changeLogInfo = {}
 
+    changeLogInfo.v_4_1 = new Info()
+    changeLogInfo.v_4_1.Youtube.push('新增聊天室圖片連結懸停預覽，滑鼠停留片刻後會顯示圖片預覽。')
+    changeLogInfo.v_4_1.Youtube.push('支援直接圖片連結、Imgur 頁面連結、Meee 圖床連結，以及 YouTube 影片縮圖預覽。')
+    changeLogInfo.v_4_1.Youtube.push('改善圖片預覽定位邏輯，預覽視窗會依據目前滑鼠位置與瀏覽器邊界自動調整顯示位置。')
+    changeLogInfo.v_4_1.版本.push('修正 YouTube 頁面的內容安全政策會阻擋聊天室 inline event handler，導致圖片預覽與部分互動失效的問題。')
+    changeLogInfo.v_4_1.版本.push('調整聊天室連結互動為事件委派處理，避免頁面安全政策變更時功能失效。')
+
     changeLogInfo.v_4_0 = new Info()
     changeLogInfo.v_4_0.Youtube.push('修正 YouTube 頁面中腳本可能誤跑在 iframe 內，導致初始化失敗或按鈕消失的問題。')
     changeLogInfo.v_4_0.Youtube.push('修正 YouTube 直播與直播存檔的判斷邏輯，避免把直播誤判成一般影片。')
