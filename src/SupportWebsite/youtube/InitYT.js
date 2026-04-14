@@ -10,6 +10,7 @@ export default function InitYT (messagePoster, siteName) {
   let lastWatchToken = null
   let pendingReinitToken = null
   let checkTimer = null
+  let hostLayoutFrame = null
   // Check Theme
   const WhiteTheme = ThemeCheck('html', 'rgb(249, 249, 249)')
 
@@ -28,6 +29,79 @@ export default function InitYT (messagePoster, siteName) {
 
   function getMoviePlayer () {
     return document.getElementById('movie_player')
+  }
+
+  function getPreferredChatContainer () {
+    const chatContainer = $('#chat-container')
+    const liveChatFrame = $('ytd-live-chat-frame')
+
+    if (liveChatFrame.length > 0) {
+      const liveChatFrameElement = liveChatFrame[0]
+      const liveChatFrameRect = liveChatFrameElement.getBoundingClientRect()
+      if (liveChatFrameRect.width > 0 && liveChatFrameRect.height > 0) {
+        return liveChatFrame
+      }
+    }
+
+    if (chatContainer.length > 0) {
+      const chatContainerElement = chatContainer[0]
+      const chatContainerRect = chatContainerElement.getBoundingClientRect()
+      if (chatContainerRect.width > 0 && chatContainerRect.height > 0) {
+        return chatContainer
+      }
+    }
+
+    return chatContainer.length > 0 ? chatContainer : liveChatFrame
+  }
+
+  function getOrCreateAppHost () {
+    let host = document.getElementById('PTTChatYoutubeHost')
+    if (!host) {
+      host = document.createElement('div')
+      host.id = 'PTTChatYoutubeHost'
+      host.style.position = 'fixed'
+      host.style.margin = '0'
+      host.style.padding = '0'
+      host.style.zIndex = '1000'
+      host.style.overflow = 'visible'
+      host.style.pointerEvents = 'none'
+      document.body.appendChild(host)
+    }
+    return $(host)
+  }
+
+  function syncAppHostLayout (sourceContainer, appHost) {
+    if (!appHost || appHost.length === 0) return
+
+    const hostElement = appHost[0]
+    const sourceElement = sourceContainer && sourceContainer[0]
+    if (!sourceElement) {
+      hostElement.style.display = 'none'
+      return
+    }
+
+    const rect = sourceElement.getBoundingClientRect()
+    if (rect.width <= 0 || rect.height <= 0) {
+      hostElement.style.display = 'none'
+      return
+    }
+
+    hostElement.style.display = 'block'
+    hostElement.style.top = rect.top + 'px'
+    hostElement.style.left = rect.left + 'px'
+    hostElement.style.width = rect.width + 'px'
+    hostElement.style.height = rect.height + 'px'
+  }
+
+  function scheduleAppHostLayoutSync () {
+    if (hostLayoutFrame !== null) return
+
+    hostLayoutFrame = window.requestAnimationFrame(() => {
+      hostLayoutFrame = null
+      const chatContainer = getPreferredChatContainer()
+      const appHost = getOrCreateAppHost()
+      syncAppHostLayout(chatContainer, appHost)
+    })
   }
 
   function getCurrentVideoKey () {
@@ -220,14 +294,15 @@ export default function InitYT (messagePoster, siteName) {
       lastVideoKey = currentVideoKey
     }
 
-    const ChatContainer = $('#chat-container').length > 0
-      ? $('#chat-container')
-      : $('ytd-live-chat-frame')
+    const ChatContainer = getPreferredChatContainer()
+    const AppHost = getOrCreateAppHost()
+    syncAppHostLayout(ChatContainer, AppHost)
     const defaultChat = $('iframe', ChatContainer)
-    const PTTApp = $('#PTTChat', ChatContainer)
+    const PTTApp = $('#PTTChat', AppHost)
     const appVideoToken = PTTApp.length > 0 ? PTTApp.attr('data-video-token') : null
     ytDebug('CheckChatInstanced:dom', {
       chatContainerLength: ChatContainer.length,
+      appHostLength: AppHost.length,
       defaultChatLength: defaultChat.length,
       pttAppLength: PTTApp.length,
       appVideoToken,
@@ -258,7 +333,10 @@ export default function InitYT (messagePoster, siteName) {
         return
       }
       ytDebug('CheckChatInstanced:initApp')
-      ChatContainer.css({ position: 'relative' })
+      const currentPosition = AppHost.css('position')
+      if (!currentPosition || currentPosition === 'static') {
+        AppHost.css({ position: 'fixed' })
+      }
 
       // 生出套件
       let isStream = false
@@ -268,9 +346,10 @@ export default function InitYT (messagePoster, siteName) {
         console.log('checkVideoType failed, fallback as video mode', e)
       }
       ytDebug('CheckChatInstanced:videoType', { isStream })
-      InitApp(ChatContainer, WhiteTheme, isStream, msg, siteName)
+      InitApp(AppHost, WhiteTheme, isStream, msg, siteName)
       setTimeout(() => {
-        const currentApp = $('#PTTChat', ChatContainer)
+        syncAppHostLayout(ChatContainer, AppHost)
+        const currentApp = $('#PTTChat', AppHost)
         if (currentApp.length > 0 && currentWatchToken) {
           currentApp.attr('data-video-token', currentWatchToken)
         }
@@ -289,12 +368,17 @@ export default function InitYT (messagePoster, siteName) {
   if (!window.__PTTChatOnYT_YT_NAV_HOOKED__) {
     window.addEventListener('yt-navigate-finish', () => {
       ytDebug('event:yt-navigate-finish', { href: window.location.href })
+      scheduleAppHostLayoutSync()
       scheduleCheck(50)
     }, true)
     window.addEventListener('yt-page-data-updated', () => {
       ytDebug('event:yt-page-data-updated', { href: window.location.href })
+      scheduleAppHostLayoutSync()
       scheduleCheck(50)
     }, true)
+    window.addEventListener('yt-player-updated', scheduleAppHostLayoutSync, true)
+    window.addEventListener('resize', scheduleAppHostLayoutSync, true)
+    window.addEventListener('scroll', scheduleAppHostLayoutSync, true)
     window.__PTTChatOnYT_YT_NAV_HOOKED__ = true
     ytDebug('eventHooks:registered')
   } else {

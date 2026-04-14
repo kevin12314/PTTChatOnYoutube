@@ -598,9 +598,13 @@ body.modal-open {
   font-size: 14px;
   box-sizing: border-box;
 
-  &.show { display: block; }
+  &.show {
+    display: block;
+  }
 
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
   .modal-dialog {
     position: relative;
@@ -623,7 +627,9 @@ body.modal-open {
   }
 
   @media (min-width: 576px) {
-    .modal-dialog-centered { min-height: calc(100% - 3.5rem); }
+    .modal-dialog-centered {
+      min-height: calc(100% - 3.5rem);
+    }
   }
 
   .modal-content {
@@ -690,6 +696,7 @@ body.modal-open {
       color: #fff;
       background-color: #0d6efd;
       border-color: #0d6efd;
+
       &:hover {
         background-color: #0b5ed7;
         border-color: #0a58ca;
@@ -697,9 +704,20 @@ body.modal-open {
     }
   }
 
-  ul { padding-left: 1.5rem; margin: 0.25rem 0; list-style: disc; }
-  li { list-style: disc; }
-  b, strong { font-weight: bold; }
+  ul {
+    padding-left: 1.5rem;
+    margin: 0.25rem 0;
+    list-style: disc;
+  }
+
+  li {
+    list-style: disc;
+  }
+
+  b,
+  strong {
+    font-weight: bold;
+  }
 }
 
 #pttchatparent.d-flex,
@@ -717,4 +735,11 @@ body.modal-open {
 
 #PTTChat.h-100 {
   height: 100% !important;
+}
+
+#PTTChat .row>[class*=col-],
+#PTTChat .row>.col,
+#PTTChat .row label.col-2 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }

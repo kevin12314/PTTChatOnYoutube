@@ -25,5 +25,6 @@ export default {
 <style lang="scss" scoped>
 a {
   z-index: 4000 !important;
+  pointer-events: auto;
 }
 </style>

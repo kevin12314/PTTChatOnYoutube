@@ -21,6 +21,16 @@ export default function InitApp (
   // generate crypt key everytime;
   InitChatApp(chatContainer)
   function InitChatApp (cn) {
+    function getChatContainerHeight () {
+      const containerElement = cn && cn[0]
+      if (!containerElement) return 0
+
+      const rectHeight = Math.round(containerElement.getBoundingClientRect().height || 0)
+      const clientHeight = Math.round(containerElement.clientHeight || 0)
+      const offsetHeight = Math.round(containerElement.offsetHeight || 0)
+      return Math.max(rectHeight, clientHeight, offsetHeight, 0)
+    }
+
     function getYoutubePlayerResponse () {
       // movie_player.getPlayerResponse() is updated on every video load including SPA navigation.
       // ytInitialPlayerResponse is only set on full page load (server-side), not on SPA navigation.
@@ -73,7 +83,7 @@ export default function InitApp (
     const themewhite = 'pttbgc-19 pttc-5'
     const themedark = 'pttbgc-2 pttc-2'
 
-    const chatHeight = Math.round((cn && cn.height && cn.height()) || (cn && cn[0] && cn[0].clientHeight) || 0)
+    const chatHeight = getChatContainerHeight()
     if (store.getters.getPluginHeight <= 0 && chatHeight > 0) {
       store.dispatch('setPluginHeight', chatHeight)
       if (showAllLog) console.log('PluginHeight auto initialized from chat container:', chatHeight)
@@ -100,7 +110,9 @@ export default function InitApp (
           player: document.getElementsByTagName('video')[0],
           playertime: null,
           exist: null,
-          customPluginSettingListenerId: 0
+          customPluginSettingListenerId: 0,
+          chatContainerResizeObserver: null,
+          syncPluginHeightHandler: null
         }
       },
       computed: {
@@ -137,6 +149,14 @@ export default function InitApp (
         ])
       },
       mounted () {
+        const syncPluginHeight = () => {
+          const nextHeight = getChatContainerHeight()
+          if (nextHeight > 0 && nextHeight !== this.$store.getters.getPluginHeight) {
+            this.$store.dispatch('setPluginHeight', nextHeight)
+            if (showAllLog) console.log('PluginHeight synced from chat container:', nextHeight)
+          }
+        }
+
         this.$store.dispatch('updateLog', { type: 'videoType', data: isStreaming ? '實況' : '影片' })
         this.customPluginSettingListenerId = GM_addValueChangeListener('menuCommand-customPluginSetting-' + siteName,
           (name, oldValue, newValue, remote) => this.$store.dispatch('setCustomPluginSetting', newValue)
@@ -145,6 +165,17 @@ export default function InitApp (
         this.$store.dispatch('setCustomPluginSetting', GM_getValue('menuCommand-customPluginSetting-' + siteName, false))
         if (showAllLog)console.log('dispatch setCustomPluginSetting', GM_getValue('menuCommand-customPluginSetting-' + siteName, false))
         appinscount++
+        this.syncPluginHeightHandler = syncPluginHeight
+        syncPluginHeight()
+        window.addEventListener('resize', this.syncPluginHeightHandler, true)
+        window.addEventListener('yt-player-updated', this.syncPluginHeightHandler, true)
+        window.addEventListener('yt-navigate-finish', this.syncPluginHeightHandler, true)
+        if (typeof ResizeObserver === 'function' && cn && cn[0]) {
+          this.chatContainerResizeObserver = new ResizeObserver(() => {
+            syncPluginHeight()
+          })
+          this.chatContainerResizeObserver.observe(cn[0])
+        }
         this.playertime = window.setInterval(() => {
           if (this.player) {
             this.$store.dispatch('updateVideoPlayedTime', this.player.currentTime)
@@ -219,15 +250,30 @@ export default function InitApp (
       },
       beforeUnmount () {
         GM_removeValueChangeListener(this.customPluginSettingListenerId)
+        if (this.chatContainerResizeObserver) {
+          this.chatContainerResizeObserver.disconnect()
+          this.chatContainerResizeObserver = null
+        }
+        if (this.syncPluginHeightHandler) {
+          window.removeEventListener('resize', this.syncPluginHeightHandler, true)
+          window.removeEventListener('yt-player-updated', this.syncPluginHeightHandler, true)
+          window.removeEventListener('yt-navigate-finish', this.syncPluginHeightHandler, true)
+          this.syncPluginHeightHandler = null
+        }
         clearInterval(this.playertime)
         clearInterval(this.exist)
       },
       render () {
+        const rootStyle = { top: '0px' }
+        if (siteName === 'Youtube') {
+          rootStyle.pointerEvents = 'none'
+        }
+
         return h('div', {
           id: 'PTTChat',
           class: this.classes,
           ins: this.index,
-          style: { top: '0px' }
+          style: rootStyle
         }, [
           h(PttAppButton),
           h(PttApp)
