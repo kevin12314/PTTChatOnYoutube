@@ -20,11 +20,7 @@ export default {
       isAutoScroll: true,
       lastautoscrolltime: Date.now(),
       ChatElement: ChatElement,
-      scrolloffset: 0,
-      isChatTabVisible: false,
-      hasListEventHandler: false,
-      chatTabShownHandler: null,
-      chatTabHiddenHandler: null
+      scrolloffset: 0
     }
   },
   methods: {
@@ -133,17 +129,7 @@ export default {
       this.isAutoScroll = true
       this.scrollToChat()
     },
-    refreshScroller: function () {
-      const list = this.$refs.chatmain
-      if (!list) return
-
-      if (typeof list.forceUpdate === 'function') list.forceUpdate(true)
-      if (typeof list.handleResize === 'function') list.handleResize()
-      this.scrollToChat()
-    },
     AddEventHandler: function () {
-      if (this.hasListEventHandler || !this.$refs.chatmain || !this.$refs.chatmain.$el) return
-
       const list = this.$refs.chatmain.$el
       // 使用者滾輪事件
       if (list.addEventListener) {
@@ -153,27 +139,6 @@ export default {
         list.attachEvent('onmousewheel', this.MouseWheelHandler)
       }
       list.addEventListener('scroll', e => { if (this.isAutoScroll) this.lastautoscrolltime = Date.now() })
-      this.hasListEventHandler = true
-    },
-    initChatTabVisibility: function () {
-      const chatPane = document.getElementById('PTTChat-contents-Chat')
-      const chatTab = document.getElementById('nav-item-Chat')
-      this.isChatTabVisible = !!(chatPane && chatPane.classList.contains('show') && chatPane.classList.contains('active'))
-      if (!chatTab) return
-
-      this.chatTabShownHandler = () => {
-        this.isChatTabVisible = true
-        this.$nextTick(() => {
-          this.AddEventHandler()
-          this.refreshScroller()
-        })
-      }
-      this.chatTabHiddenHandler = () => {
-        this.isChatTabVisible = false
-      }
-
-      chatTab.addEventListener('shown.bs.tab', this.chatTabShownHandler)
-      chatTab.addEventListener('hidden.bs.tab', this.chatTabHiddenHandler)
     }
   },
   computed: {
@@ -232,18 +197,12 @@ export default {
   },
   mounted () {
     if (showAllLog) console.log('Chat mounted')
-    this.initChatTabVisibility()
-    if (this.isChatTabVisible) {
-      this.$nextTick(() => {
-        this.AddEventHandler()
-        this.refreshScroller()
-      })
-    }
+    this.$nextTick(() => this.AddEventHandler())
     // 註冊文章事件
     this.msg.newComment = data => {
       this.$store.dispatch('updatePost', data)
       this.nextUpdateTime = Date.now() + Math.max(this.getCommentInterval, 2.5) * 1000
-      if (this.isAutoScroll && this.isChatTabVisible) {
+      if (this.isAutoScroll) {
         this.$nextTick(() => this.scrollToChat())
       }
     }
@@ -262,9 +221,6 @@ export default {
     this.intervalScroll = window.setInterval(() => { this.updateChat() }, 500)
   },
   beforeUnmount () {
-    const chatTab = document.getElementById('nav-item-Chat')
-    if (chatTab && this.chatTabShownHandler) chatTab.removeEventListener('shown.bs.tab', this.chatTabShownHandler)
-    if (chatTab && this.chatTabHiddenHandler) chatTab.removeEventListener('hidden.bs.tab', this.chatTabHiddenHandler)
     clearInterval(this.intervalChat)
     clearInterval(this.intervalScroll)
   },
@@ -279,50 +235,39 @@ export default {
   render () {
     return h('div', {
       id: 'PTTChat-contents-Chat-main',
-      class: 'h-100 d-flex flex-column',
-      style: {
-        minHeight: '0'
-      }
+      class: 'h-100 d-flex flex-column'
     }, [
-      this.isChatTabVisible
-        ? h(DynamicScroller, {
-          ref: 'chatmain',
-          style: {
-            flex: '1 1 auto',
-            minHeight: '0',
-            overscrollBehavior: 'none',
-            overflowY: 'auto',
-            overflowX: 'hidden'
-          },
-          items: this.allchats,
-          minItemSize: this.defaultElClientHeight,
-          class: 'scroller',
-          keyField: 'uid'
+      h(DynamicScroller, {
+        ref: 'chatmain',
+        style: {
+          overscrollBehavior: 'none',
+          overflowY: 'scroll',
+          overflowX: 'hidden',
+          height: '100%'
+        },
+        items: this.allchats,
+        minItemSize: this.defaultElClientHeight,
+        class: 'scroller',
+        keyField: 'uid'
+      }, {
+        default: ({ item, index, active }) => h(DynamicScrollerItem, {
+          item,
+          active,
+          index: item.id,
+          sizeDependencies: [item.msg, this.defaultElClientHeight]
         }, {
-          default: ({ item, index, active }) => h(DynamicScrollerItem, {
+          default: () => h(ChatElement, {
             item,
-            active,
-            index: item.id,
-            sizeDependencies: [item.msg, this.defaultElClientHeight]
-          }, {
-            default: () => h(ChatElement, {
-              item,
-              index,
-              key: index,
-              msgStyle: this.elMsgStyle,
-              infoStyle: this.elInfoStyle,
-              spaceStyle: this.elSpaceStyle,
-              activeChat: this.activeChat,
-              onUpdategray: this.updateGray
-            })
+            index,
+            key: index,
+            msgStyle: this.elMsgStyle,
+            infoStyle: this.elInfoStyle,
+            spaceStyle: this.elSpaceStyle,
+            activeChat: this.activeChat,
+            onUpdategray: this.updateGray
           })
         })
-        : h('div', {
-          class: 'flex-grow-1 overflow-hidden',
-          style: {
-            minHeight: '0'
-          }
-        }),
+      }),
       h(ChatSetNewComment),
       h(ChatPreviewImage),
       h(ChatScrollBtn, {
