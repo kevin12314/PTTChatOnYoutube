@@ -41,11 +41,29 @@
       window.unsafeWindow = window
     })()
   </script>
-  <script src="/main.user.js"></script>
 </head>
 
 <body>
   <div id="smoke-root"></div>
+  <script>
+    (function loadBundleWhenBodyReady () {
+      function injectBundle () {
+        if (!document.body || document.querySelector('script[data-local-dev-bundle]')) return
+
+        const script = document.createElement('script')
+        script.src = '/main.user.js'
+        script.dataset.localDevBundle = 'true'
+        document.body.appendChild(script)
+      }
+
+      if (document.body) {
+        injectBundle()
+        return
+      }
+
+      document.addEventListener('DOMContentLoaded', injectBundle, { once: true })
+    })()
+  </script>
 </body>
 
 </html>
