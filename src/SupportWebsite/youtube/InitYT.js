@@ -235,7 +235,15 @@ export default function InitYT (messagePoster, siteName) {
     const microformat = playerResponse.microformat && playerResponse.microformat.playerMicroformatRenderer
     const liveBroadcastDetails = microformat && microformat.liveBroadcastDetails
     if (liveBroadcastDetails && typeof liveBroadcastDetails.isLiveNow === 'boolean') {
-      return liveBroadcastDetails.isLiveNow
+      if (liveBroadcastDetails.isLiveNow) return true
+      // isLiveNow 為 false 時，若 isLiveContent 為 true 且沒有 endTimestamp，
+      // 代表是預定直播（scheduled）或直播中但 isLiveNow 尚未更新，視為直播。
+      // 有 endTimestamp 才是真正的直播存檔。
+      const videoDetails = playerResponse.videoDetails
+      if (videoDetails && videoDetails.isLiveContent && !liveBroadcastDetails.endTimestamp) {
+        return true
+      }
+      return false
     }
 
     const videoDetails = playerResponse.videoDetails
