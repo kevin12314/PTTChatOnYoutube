@@ -3,7 +3,7 @@ const path = require('path')
 const webpack = require('webpack')
 const { VueLoaderPlugin } = require('vue-loader')
 
-const trustedTypesBootstrap = `${fs.readFileSync(path.resolve(__dirname, '../src/initTrustedTypes.js'), 'utf8').trimEnd()}\n;`
+const youtubeTrustedTypesBootstrap = `${fs.readFileSync(path.resolve(__dirname, '../src/initTrustedTypes.js'), 'utf8').trimEnd()}\n;`
 const userscriptBuildPath = path.resolve(__dirname, '../dist/main.user.js')
 const userscriptReleasePath = path.resolve(__dirname, '../dist/PttChatOnYtNext.user.js')
 
@@ -73,7 +73,7 @@ module.exports = {
   },
   plugins: [
     new webpack.BannerPlugin({
-      banner: () => trustedTypesBootstrap,
+      banner: () => youtubeTrustedTypesBootstrap,
       raw: true,
       entryOnly: true
     }),

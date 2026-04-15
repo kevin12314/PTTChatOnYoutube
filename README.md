@@ -15,7 +15,6 @@ PTTChatOnYoutubeNext - Youtube聊天室顯示PTT推文Next
 
 ## 專案概況
 
-- 目前版本：4.1.1
 - 技術棧：Vue 3、Vuex、Webpack 5、Bootstrap 5、Userscript
 - 主要目標：在支援網站上將 PTT 推文同步顯示於聊天室或側邊介面
 

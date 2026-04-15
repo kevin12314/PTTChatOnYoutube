@@ -21,6 +21,8 @@ export default function InitApp (
   // generate crypt key everytime;
   InitChatApp(chatContainer)
   function InitChatApp (cn) {
+    const shouldSyncPluginHeight = siteName === 'Youtube'
+
     function getChatContainerHeight () {
       const containerElement = cn && cn[0]
       if (!containerElement) return 0
@@ -84,9 +86,12 @@ export default function InitApp (
     const themedark = 'pttbgc-2 pttc-2'
 
     const chatHeight = getChatContainerHeight()
-    if (store.getters.getPluginHeight <= 0 && chatHeight > 0) {
+    if (shouldSyncPluginHeight && store.getters.getPluginHeight <= 0 && chatHeight > 0) {
       store.dispatch('setPluginHeight', chatHeight)
       if (showAllLog) console.log('PluginHeight auto initialized from chat container:', chatHeight)
+    } else if (siteName === 'Holodex' && store.getters.getPluginHeight <= 1) {
+      store.dispatch('setPluginHeight', 400)
+      if (showAllLog) console.log('PluginHeight restored for Holodex:', 400)
     }
 
     if (showAllLog)console.log('Instance PTTChatOnYT App, index', appinscount)
@@ -150,6 +155,8 @@ export default function InitApp (
       },
       mounted () {
         const syncPluginHeight = () => {
+          if (!shouldSyncPluginHeight) return
+
           const nextHeight = getChatContainerHeight()
           if (nextHeight > 0 && nextHeight !== this.$store.getters.getPluginHeight) {
             this.$store.dispatch('setPluginHeight', nextHeight)
@@ -165,12 +172,14 @@ export default function InitApp (
         this.$store.dispatch('setCustomPluginSetting', GM_getValue('menuCommand-customPluginSetting-' + siteName, false))
         if (showAllLog)console.log('dispatch setCustomPluginSetting', GM_getValue('menuCommand-customPluginSetting-' + siteName, false))
         appinscount++
-        this.syncPluginHeightHandler = syncPluginHeight
-        syncPluginHeight()
-        window.addEventListener('resize', this.syncPluginHeightHandler, true)
-        window.addEventListener('yt-player-updated', this.syncPluginHeightHandler, true)
-        window.addEventListener('yt-navigate-finish', this.syncPluginHeightHandler, true)
-        if (typeof ResizeObserver === 'function' && cn && cn[0]) {
+        if (shouldSyncPluginHeight) {
+          this.syncPluginHeightHandler = syncPluginHeight
+          syncPluginHeight()
+          window.addEventListener('resize', this.syncPluginHeightHandler, true)
+          window.addEventListener('yt-player-updated', this.syncPluginHeightHandler, true)
+          window.addEventListener('yt-navigate-finish', this.syncPluginHeightHandler, true)
+        }
+        if (shouldSyncPluginHeight && typeof ResizeObserver === 'function' && cn && cn[0]) {
           this.chatContainerResizeObserver = new ResizeObserver(() => {
             syncPluginHeight()
           })

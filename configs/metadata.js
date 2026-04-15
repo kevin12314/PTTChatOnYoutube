@@ -28,7 +28,7 @@ module.exports = {
     'GM_registerMenuCommand',
     'GM_unregisterMenuCommand'
   ],
-  'run-at': 'document-start',
+  'run-at': 'document-body',
   require: [],
   homepageURL:
     'https://github.com/kevin12314/PTTChatOnYoutube/tree/master/homepage',
