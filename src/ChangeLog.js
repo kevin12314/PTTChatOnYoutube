@@ -25,10 +25,12 @@ export default function ChangeLog () {
     changeLogInfo.v_4_1.Youtube.push('修正 YouTube 切換劇院模式時，PTT iframe 可能被重建，進而造成登入狀態異常或登入按鈕無反應的問題。')
     changeLogInfo.v_4_1.Youtube.push('改善 YouTube 頁面捲動、視窗縮放與播放器更新時的定位同步，減少面板位置延遲更新或跳動的情況。')
     changeLogInfo.v_4_1.Youtube.push('修正 PTTChat 可能遮擋 YouTube 原生聊天室操作的問題，像是聊天室輸入框與重點聊天室訊息切換。')
+    changeLogInfo.v_4_1.Youtube.push('調整 YouTube 預定直播的分類邏輯，從原先視為影片改為視為直播。')
     changeLogInfo.v_4_1.HoloDex.push('改善 HoloDex 頁面中 PTTChat 的相容性，減少宿主頁樣式介入造成的欄位間距與排版異常。')
     changeLogInfo.v_4_1.版本.push('修正 YouTube 頁面的內容安全政策會阻擋聊天室 inline event handler，導致圖片預覽與部分互動失效的問題。')
     changeLogInfo.v_4_1.版本.push('調整聊天室連結互動為事件委派處理，避免頁面安全政策變更時功能失效。')
     changeLogInfo.v_4_1.版本.push('調整事件處理、掛載邏輯與樣式覆蓋範圍，避免修正 YouTube 問題時影響其他支援網站的既有行為。')
+    changeLogInfo.v_4_1.版本.push('修正 Imgur 圖片預覽因 referrer 問題導致的 403 錯誤。')
 
     changeLogInfo.v_4_0 = new Info()
     changeLogInfo.v_4_0.Youtube.push('修正 YouTube 頁面中腳本可能誤跑在 iframe 內，導致初始化失敗或按鈕消失的問題。')

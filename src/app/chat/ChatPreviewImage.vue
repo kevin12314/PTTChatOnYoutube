@@ -6,6 +6,7 @@
         ref="imgel"
         :style="style"
         :src="previewImageURL"
+        referrerpolicy="no-referrer"
         @load="handleImageLoad"
         @error="handleImageError"
       >

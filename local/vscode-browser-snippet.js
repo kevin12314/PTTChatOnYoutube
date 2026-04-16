@@ -134,7 +134,7 @@ void (async function bootstrapPttChatOnYoutubeDev () {
     installValueApi()
     installMenuApi()
     installTrustedTypesShim()
-    window.GM_info = { script: { version: '4.1.3-dev-vscode' } }
+    window.GM_info = { script: { version: '4.1.4-dev-vscode' } }
     window.unsafeWindow = window
   }
 
