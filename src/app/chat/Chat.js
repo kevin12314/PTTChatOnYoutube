@@ -289,7 +289,7 @@ const testchat = {
       }
       let msg = ''
       let m = i + ''
-      switch (i % 8) {
+      switch (i % 9) {
         case 0:
           m += filterXSS('太神啦 https://youtu.be/23y5h8kQsv8?t=4510 太神啦 https://www.youtube.com/watch?t=1237&v=Suab3SD1rbI&feature=youtu.be')
           break
@@ -313,6 +313,9 @@ const testchat = {
           break
         case 7:
           m += filterXSS('測 X c/status 預覽 https://x.com/c/status/2044672273580474568')
+          break
+        case 8:
+          m += filterXSS('測 X 多圖預覽 https://x.com/hologoe_ABEMA/status/2044355055042593096?s=20')
           break
         default:
           break

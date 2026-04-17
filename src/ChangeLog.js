@@ -17,6 +17,9 @@ export default function ChangeLog () {
   function AddChangeLogInfo () {
     const changeLogInfo = {}
 
+    changeLogInfo.v_4_2 = new Info()
+    changeLogInfo.v_4_2.Youtube.push('新增 X/Twitter 貼文連結懸停預覽 MVP，支援 x.com 與 twitter.com 的 status 連結顯示貼文卡片。')
+
     changeLogInfo.v_4_1 = new Info()
     changeLogInfo.v_4_1.Youtube.push('新增聊天室圖片連結懸停預覽，滑鼠停留片刻後會顯示圖片預覽。')
     changeLogInfo.v_4_1.Youtube.push('支援直接圖片連結、Imgur 頁面連結、Meee 圖床連結，以及 YouTube 影片縮圖預覽。')

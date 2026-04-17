@@ -19,10 +19,21 @@
       >
         <div class="ptt-chat-preview-card__header">
           <span class="ptt-chat-preview-card__service">X</span>
-          <span
-            v-if="tweetCard.author"
-            class="ptt-chat-preview-card__author"
-          >{{ tweetCard.author }}</span>
+          <div
+            v-if="tweetCard.avatar || tweetCard.author"
+            class="ptt-chat-preview-card__identity"
+          >
+            <img
+              v-if="tweetCard.avatar"
+              class="ptt-chat-preview-card__avatar"
+              :src="tweetCard.avatar"
+              referrerpolicy="no-referrer"
+            >
+            <span
+              v-if="tweetCard.author"
+              class="ptt-chat-preview-card__author"
+            >{{ tweetCard.author }}</span>
+          </div>
         </div>
         <div
           v-if="tweetCard.text"
@@ -30,15 +41,25 @@
         >
           {{ tweetCard.text }}
         </div>
-        <img
+        <div
           v-if="tweetCard.image"
-          ref="cardImage"
-          class="ptt-chat-preview-card__image"
-          :src="tweetCard.image"
-          referrerpolicy="no-referrer"
-          @load="handleCardLoad"
-          @error="handleCardImageError"
+          class="ptt-chat-preview-card__image-wrap"
         >
+          <img
+            ref="cardImage"
+            class="ptt-chat-preview-card__image"
+            :src="tweetCard.image"
+            referrerpolicy="no-referrer"
+            @load="handleCardLoad"
+            @error="handleCardImageError"
+          >
+          <div
+            v-if="tweetCard.mediaCount > 1"
+            class="ptt-chat-preview-card__image-count"
+          >
+            +{{ tweetCard.mediaCount - 1 }}
+          </div>
+        </div>
         <div
           v-if="tweetCard.description && tweetCard.description !== tweetCard.text"
           class="ptt-chat-preview-card__description"
@@ -80,9 +101,12 @@ const EMPTY_TWEET_CARD = Object.freeze({
   visible: false,
   loading: false,
   author: '',
+  authorUrl: '',
+  avatar: '',
   text: '',
   description: '',
   image: '',
+  mediaCount: 0,
   error: ''
 })
 
@@ -103,6 +127,8 @@ export default {
       previewType: 'none',
       tweetCard: cloneEmptyTweetCard(),
       tweetPreviewCache: {},
+      tweetAvatarCache: {},
+      tweetMediaCache: {},
       activeTweetRequestUrl: ''
     }
   },
@@ -247,7 +273,8 @@ export default {
     handleCardImageError () {
       this.tweetCard = {
         ...this.tweetCard,
-        image: ''
+        image: '',
+        mediaCount: 0
       }
       this.$nextTick(() => this.measureCard())
     },
@@ -302,6 +329,8 @@ export default {
           loading: false,
           error: ''
         }
+        this.ensureTweetAvatar(tweetUrl, this.tweetPreviewCache[tweetUrl].authorUrl)
+        this.ensureTweetMedia(tweetUrl)
         this.$nextTick(() => this.measureCard())
         return
       }
@@ -321,9 +350,12 @@ export default {
           visible: true,
           loading: false,
           author: previewData.author,
+          authorUrl: previewData.authorUrl,
+          avatar: previewData.avatar || '',
           text: previewData.text,
           description: previewData.description,
           image: previewData.image,
+          mediaCount: previewData.mediaCount || 0,
           error: previewData.text || previewData.image ? '' : '目前無法解析這則貼文預覽。'
         }
         this.tweetPreviewCache = {
@@ -331,6 +363,8 @@ export default {
           [tweetUrl]: nextCard
         }
         this.tweetCard = nextCard
+        this.ensureTweetAvatar(tweetUrl, previewData.authorUrl)
+        this.ensureTweetMedia(tweetUrl)
         this.$nextTick(() => this.measureCard())
       } catch (error) {
         if (this.activeTweetRequestUrl !== tweetUrl || this.getTweetCanonicalUrl(this.previewImage) !== tweetUrl) return
@@ -347,10 +381,105 @@ export default {
       const oembedUrl = TWEET_OEMBED_ENDPOINT + '?omit_script=true&url=' + encodeURIComponent(tweetUrl)
       const oembedResponse = await this.gmRequest(oembedUrl, 'json')
       const parsedFromOembed = this.parseTweetPreviewFromOembed(oembedResponse)
-      if (parsedFromOembed.text || parsedFromOembed.author) return parsedFromOembed
+      if (parsedFromOembed.text || parsedFromOembed.author) {
+        parsedFromOembed.avatar = await this.resolveTweetAuthorAvatar(parsedFromOembed.authorUrl)
+        return parsedFromOembed
+      }
 
       const html = await this.gmRequest(tweetUrl, 'text')
       return this.parseTweetPreviewFromHtml(html)
+    },
+    async ensureTweetAvatar (tweetUrl, authorUrl) {
+      if (!authorUrl) return
+      if (this.tweetPreviewCache[tweetUrl] && this.tweetPreviewCache[tweetUrl].avatar) return
+
+      const avatar = await this.resolveTweetAuthorAvatar(authorUrl)
+      if (!avatar) return
+
+      if (this.tweetPreviewCache[tweetUrl]) {
+        this.tweetPreviewCache = {
+          ...this.tweetPreviewCache,
+          [tweetUrl]: {
+            ...this.tweetPreviewCache[tweetUrl],
+            avatar
+          }
+        }
+      }
+
+      if (this.activeTweetRequestUrl === tweetUrl && this.getTweetCanonicalUrl(this.previewImage) === tweetUrl) {
+        this.tweetCard = {
+          ...this.tweetCard,
+          avatar
+        }
+        this.$nextTick(() => this.measureCard())
+      }
+    },
+    async ensureTweetMedia (tweetUrl) {
+      if (!tweetUrl) return
+      if (this.tweetPreviewCache[tweetUrl] && this.tweetPreviewCache[tweetUrl].image) return
+
+      const media = await this.resolveTweetMedia(tweetUrl)
+      if (!media.image) return
+
+      if (this.tweetPreviewCache[tweetUrl]) {
+        this.tweetPreviewCache = {
+          ...this.tweetPreviewCache,
+          [tweetUrl]: {
+            ...this.tweetPreviewCache[tweetUrl],
+            image: media.image,
+            mediaCount: media.count
+          }
+        }
+      }
+
+      if (this.activeTweetRequestUrl === tweetUrl && this.getTweetCanonicalUrl(this.previewImage) === tweetUrl) {
+        this.tweetCard = {
+          ...this.tweetCard,
+          image: media.image,
+          mediaCount: media.count
+        }
+        this.$nextTick(() => this.measureCard())
+      }
+    },
+    async resolveTweetAuthorAvatar (authorUrl) {
+      if (!authorUrl) return ''
+      if (Object.prototype.hasOwnProperty.call(this.tweetAvatarCache, authorUrl)) return this.tweetAvatarCache[authorUrl]
+
+      try {
+        const html = await this.gmRequest(authorUrl, 'text')
+        const avatar = this.extractTweetAuthorAvatar(html)
+        this.tweetAvatarCache = {
+          ...this.tweetAvatarCache,
+          [authorUrl]: avatar
+        }
+        return avatar
+      } catch (error) {
+        this.tweetAvatarCache = {
+          ...this.tweetAvatarCache,
+          [authorUrl]: ''
+        }
+        return ''
+      }
+    },
+    async resolveTweetMedia (tweetUrl) {
+      if (!tweetUrl) return { image: '', count: 0 }
+      if (Object.prototype.hasOwnProperty.call(this.tweetMediaCache, tweetUrl)) return this.tweetMediaCache[tweetUrl]
+
+      try {
+        const html = await this.gmRequest(tweetUrl, 'text')
+        const media = this.extractTweetMediaInfo(html)
+        this.tweetMediaCache = {
+          ...this.tweetMediaCache,
+          [tweetUrl]: media
+        }
+        return media
+      } catch (error) {
+        this.tweetMediaCache = {
+          ...this.tweetMediaCache,
+          [tweetUrl]: { image: '', count: 0 }
+        }
+        return { image: '', count: 0 }
+      }
     },
     gmRequest (url, responseType) {
       if (typeof GM_xmlhttpRequest !== 'function') {
@@ -391,13 +520,14 @@ export default {
       return await response.text()
     },
     parseTweetPreviewFromHtml (html) {
-      if (!html) return { author: '', text: '', description: '', image: '' }
+      if (!html) return { author: '', text: '', description: '', image: '', mediaCount: 0 }
 
       const parser = new DOMParser()
       const doc = parser.parseFromString(html, 'text/html')
       const title = this.getMetaContent(doc, 'meta[property="og:title"]') || this.getMetaContent(doc, 'meta[name="twitter:title"]')
       const description = this.getMetaContent(doc, 'meta[property="og:description"]') || this.getMetaContent(doc, 'meta[name="twitter:description"]')
       const image = this.getMetaContent(doc, 'meta[property="og:image"]') || this.getMetaContent(doc, 'meta[name="twitter:image"]')
+      const media = this.extractTweetMediaInfo(html)
       const author = this.extractTweetAuthor(title)
       const text = this.extractTweetText(description, author)
 
@@ -405,7 +535,8 @@ export default {
         author,
         text,
         description,
-        image: this.normalizeTweetImage(image)
+        image: this.normalizeTweetImage(image) || media.image,
+        mediaCount: media.count
       }
     },
     parseTweetPreviewFromOembed (response) {
@@ -418,9 +549,12 @@ export default {
 
       return {
         author: authorText,
+        authorUrl: response && response.author_url ? response.author_url : '',
+        avatar: '',
         text: this.extractTweetTextFromElement(paragraph),
         description: '',
         image: '',
+        mediaCount: 0,
         sourceUrl: authorAnchor ? authorAnchor.href : ''
       }
     },
@@ -436,6 +570,8 @@ export default {
       return text
         .replace(/\u00a0/g, ' ')
         .replace(/([^\s])((?:https?:\/\/|pic\.twitter\.com\/))/g, '$1\n$2')
+        .replace(/(?:^|\s+)pic\.twitter\.com\/\S+/g, '')
+        .replace(/^pic\.twitter\.com\/\S+$/gim, '')
         .replace(/[ \t]+\n/g, '\n')
         .replace(/\n[ \t]+/g, '\n')
         .replace(/\n{3,}/g, '\n\n')
@@ -464,6 +600,29 @@ export default {
       if (!imageUrl) return ''
       if (/amplify_video_thumb|profile_images|abs-0\.twimg\.com/i.test(imageUrl)) return ''
       return imageUrl
+    },
+    extractTweetAuthorAvatar (html) {
+      if (!html) return ''
+
+      const match = html.match(/https:\/\/pbs\.twimg\.com\/profile_images\/[^"'\\\s<]+/i)
+      if (!match || !match[0]) return ''
+
+      return match[0].replace(/_normal(?=\.[a-z0-9]+(?:[?#].*)?$)/i, '_200x200')
+    },
+    extractTweetMediaInfo (html) {
+      if (!html) return { image: '', count: 0 }
+
+      const matches = html.match(/https:\/\/pbs\.twimg\.com\/media\/[^"'\\\s<]+/ig)
+      if (!matches || matches.length === 0) return { image: '', count: 0 }
+
+      const uniqueMatches = [...new Set(matches)]
+      const imageList = uniqueMatches.filter(url => /\.(jpg|jpeg|png|webp)(?:[?#].*)?$/i.test(url))
+      const firstImage = imageList[0] || uniqueMatches[0] || ''
+
+      return {
+        image: firstImage,
+        count: imageList.length > 0 ? imageList.length : (firstImage ? 1 : 0)
+      }
     },
     getNormalImageCandidates (text) {
       const url = this.parseURL(text)
@@ -572,6 +731,22 @@ export default {
   font-size: 0.9rem;
 }
 
+.ptt-chat-preview-card__identity {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.ptt-chat-preview-card__avatar {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  object-fit: cover;
+}
+
 .ptt-chat-preview-card__service {
   display: inline-flex;
   align-items: center;
@@ -586,6 +761,7 @@ export default {
 }
 
 .ptt-chat-preview-card__author {
+  min-width: 0;
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
@@ -614,6 +790,12 @@ export default {
   margin-top: 0.5rem;
 }
 
+.ptt-chat-preview-card__image-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
 .ptt-chat-preview-card__image {
   display: block;
   width: 100%;
@@ -621,5 +803,26 @@ export default {
   object-fit: cover;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 0.5rem;
+}
+
+.ptt-chat-preview-card__image-count {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  min-width: 2.5rem;
+  padding: 0.32rem 0.62rem;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  letter-spacing: 0.02em;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: none;
 }
 </style>
