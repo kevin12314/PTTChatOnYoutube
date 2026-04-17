@@ -303,7 +303,7 @@ const testchat = {
           m += filterXSS('測 smoke 連結 https://i.urusai.cc/QKcdY.png 太神啦 https://imgur.com/2igxFsX')
           break
         case 4:
-          m += filterXSS('測 host 圖床 https://i.meee.com.tw/AlQ0SaA')
+          m += filterXSS('測 host 圖床 https://i.meee.com.tw/AlQ0SaA https://img.verb.tw/view/M9NDjOLc.jpg')
           break
         case 5:
           m += filterXSS('太神啦 https://hololive.jetri.co/#/watch #1WHqSb2l (C_Chat)')

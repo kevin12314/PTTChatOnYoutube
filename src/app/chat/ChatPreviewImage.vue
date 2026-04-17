@@ -3,10 +3,10 @@
   <teleport to="body">
     <div style="z-index:4600;">
       <img
-        v-if="previewType === 'image' && previewImageURL !== ''"
+        v-if="previewType === 'image' && resolvedPreviewImageURL !== ''"
         ref="imgel"
         :style="style"
-        :src="previewImageURL"
+        :src="resolvedPreviewImageURL"
         referrerpolicy="no-referrer"
         @load="handleImageLoad"
         @error="handleImageError"
@@ -89,6 +89,10 @@ const DIRECT_IMAGE_HOSTS = ['i.urusai.cc']
 const DIRECT_IMAGE_PATTERN = /\.(jpeg|jpg|gif|png|webp)(?:$|[?#])/i
 const IMGUR_PAGE_HOSTS = ['imgur.com', 'www.imgur.com', 'm.imgur.com']
 const IMGUR_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
+const VERB_DIRECT_IMAGE_HOSTS = ['i.verb.tw']
+const VERB_PAGE_HOSTS = ['img.verb.tw']
+const VERB_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
+const BLOB_PREVIEW_HOSTS = ['i.verb.tw']
 const MEEE_DIRECT_IMAGE_HOSTS = ['i.mee.com.tw', 'i.meee.com.tw']
 const MEEE_PAGE_HOSTS = ['meee.com.tw', 'www.meee.com.tw']
 const MEEE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
@@ -125,6 +129,9 @@ export default {
       previewPointerHandler: null,
       previewIndex: 0,
       previewType: 'none',
+      previewImageUrlToken: 0,
+      previewBlobUrl: '',
+      resolvedPreviewImageURL: '',
       tweetCard: cloneEmptyTweetCard(),
       tweetPreviewCache: {},
       tweetAvatarCache: {},
@@ -202,6 +209,12 @@ export default {
     previewIndex () {
       this.w = 0
       this.h = 0
+    },
+    previewImageURL: {
+      immediate: true,
+      handler (value) {
+        this.resolvePreviewImageUrl(value)
+      }
     }
   },
   mounted () {
@@ -218,6 +231,8 @@ export default {
     window.addEventListener('pttchat-preview-pointer', this.previewPointerHandler)
   },
   beforeUnmount () {
+    this.previewImageUrlToken++
+    this.revokePreviewBlobUrl()
     if (this.mouseMoveHandler) {
       document.body.removeEventListener('mousemove', this.mouseMoveHandler)
       this.mouseMoveHandler = null
@@ -236,6 +251,7 @@ export default {
         return
       }
 
+      this.resolvedPreviewImageURL = ''
       const tweetUrl = this.getTweetCanonicalUrl(value)
       if (tweetUrl !== null) {
         this.previewType = 'tweet'
@@ -244,11 +260,51 @@ export default {
       }
 
       this.previewType = 'none'
+      this.resolvedPreviewImageURL = ''
       this.resetTweetCard()
     },
     resetTweetCard () {
       this.activeTweetRequestUrl = ''
       this.tweetCard = cloneEmptyTweetCard()
+    },
+    revokePreviewBlobUrl () {
+      if (!this.previewBlobUrl) return
+      URL.revokeObjectURL(this.previewBlobUrl)
+      this.previewBlobUrl = ''
+    },
+    async resolvePreviewImageUrl (url) {
+      const token = ++this.previewImageUrlToken
+      this.revokePreviewBlobUrl()
+
+      if (!url) {
+        this.resolvedPreviewImageURL = ''
+        return
+      }
+
+      if (!this.shouldUseBlobPreview(url)) {
+        this.resolvedPreviewImageURL = url
+        return
+      }
+
+      try {
+        const response = await fetch(url, { method: 'GET' })
+        if (!response.ok) throw new Error('Request failed with status ' + response.status)
+
+        const imageBlob = await response.blob()
+        if (token !== this.previewImageUrlToken) return
+
+        const blobUrl = URL.createObjectURL(imageBlob)
+        this.previewBlobUrl = blobUrl
+        this.resolvedPreviewImageURL = blobUrl
+      } catch (error) {
+        if (token !== this.previewImageUrlToken) return
+        this.resolvedPreviewImageURL = url
+      }
+    },
+    shouldUseBlobPreview (text) {
+      const url = this.parseURL(text)
+      if (url === null) return false
+      return BLOB_PREVIEW_HOSTS.includes(url.host)
     },
     handleImageLoad () {
       const imageElement = this.$refs.imgel
@@ -290,7 +346,8 @@ export default {
     resolvePreviewImageCandidates (text) {
       if (!text) return []
 
-      const candidates = this.getNormalImageCandidates(text) ||
+      const candidates = this.getVerbImageCandidates(text) ||
+        this.getNormalImageCandidates(text) ||
         this.getMeeeImageCandidates(text) ||
         this.getKnownHostImageCandidates(text) ||
         this.getImgurImageCandidates(text) ||
@@ -379,11 +436,15 @@ export default {
     },
     async fetchTweetPreview (tweetUrl) {
       const oembedUrl = TWEET_OEMBED_ENDPOINT + '?omit_script=true&url=' + encodeURIComponent(tweetUrl)
-      const oembedResponse = await this.gmRequest(oembedUrl, 'json')
-      const parsedFromOembed = this.parseTweetPreviewFromOembed(oembedResponse)
-      if (parsedFromOembed.text || parsedFromOembed.author) {
-        parsedFromOembed.avatar = await this.resolveTweetAuthorAvatar(parsedFromOembed.authorUrl)
-        return parsedFromOembed
+      try {
+        const oembedResponse = await this.gmRequest(oembedUrl, 'json')
+        const parsedFromOembed = this.parseTweetPreviewFromOembed(oembedResponse)
+        if (parsedFromOembed.text || parsedFromOembed.author) {
+          parsedFromOembed.avatar = await this.resolveTweetAuthorAvatar(parsedFromOembed.authorUrl)
+          return parsedFromOembed
+        }
+      } catch (error) {
+        // Local/dev pages may be blocked by publish.twitter.com CORS changes; fall back to tweet HTML.
       }
 
       const html = await this.gmRequest(tweetUrl, 'text')
@@ -528,13 +589,17 @@ export default {
       const description = this.getMetaContent(doc, 'meta[property="og:description"]') || this.getMetaContent(doc, 'meta[name="twitter:description"]')
       const image = this.getMetaContent(doc, 'meta[property="og:image"]') || this.getMetaContent(doc, 'meta[name="twitter:image"]')
       const media = this.extractTweetMediaInfo(html)
-      const author = this.extractTweetAuthor(title)
-      const text = this.extractTweetText(description, author)
+      const author = this.extractTweetAuthor(title) || this.extractTweetAuthorFromHtml(html)
+      const authorUrl = this.extractTweetAuthorUrlFromHtml(html)
+      const avatar = this.extractTweetAuthorAvatar(html)
+      const text = this.extractTweetText(description, author) || this.extractTweetTextFromHtml(html)
 
       return {
         author,
+        authorUrl,
+        avatar,
         text,
-        description,
+        description: description || text,
         image: this.normalizeTweetImage(image) || media.image,
         mediaCount: media.count
       }
@@ -566,16 +631,7 @@ export default {
         lineBreak.replaceWith(document.createTextNode('\n'))
       })
 
-      const text = clone.textContent || ''
-      return text
-        .replace(/\u00a0/g, ' ')
-        .replace(/([^\s])((?:https?:\/\/|pic\.twitter\.com\/))/g, '$1\n$2')
-        .replace(/(?:^|\s+)pic\.twitter\.com\/\S+/g, '')
-        .replace(/^pic\.twitter\.com\/\S+$/gim, '')
-        .replace(/[ \t]+\n/g, '\n')
-        .replace(/\n[ \t]+/g, '\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim()
+      return this.normalizeTweetText(clone.textContent || '')
     },
     getMetaContent (doc, selector) {
       const element = doc.querySelector(selector)
@@ -595,6 +651,56 @@ export default {
       const escapedAuthor = author.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       const prefixPattern = new RegExp('^' + escapedAuthor + '\\s+on\\s+X:\\s*', 'i')
       return description.replace(prefixPattern, '').trim()
+    },
+    extractTweetTextFromHtml (html) {
+      if (!html) return ''
+
+      const fullTextMatch = html.match(/"full_text":"((?:\\.|[^"\\])+)"/)
+      const textMatch = html.match(/"text":"((?:\\.|[^"\\])+)"/)
+      const rawText = fullTextMatch && fullTextMatch[1]
+        ? fullTextMatch[1]
+        : (textMatch && textMatch[1] ? textMatch[1] : '')
+
+      return this.normalizeTweetText(this.decodeJsonString(rawText))
+    },
+    extractTweetAuthorFromHtml (html) {
+      if (!html) return ''
+
+      const match = html.match(/"name":"((?:\\.|[^"\\])+)","screen_name":"((?:\\.|[^"\\])+)"/)
+      if (!match || !match[1]) return ''
+
+      return this.decodeJsonString(match[1]).trim()
+    },
+    extractTweetAuthorUrlFromHtml (html) {
+      if (!html) return ''
+
+      const match = html.match(/"name":"((?:\\.|[^"\\])+)","screen_name":"((?:\\.|[^"\\])+)"/)
+      if (!match || !match[2]) return ''
+
+      return 'https://x.com/' + this.decodeJsonString(match[2]).trim()
+    },
+    normalizeTweetText (text) {
+      if (!text) return ''
+
+      return text
+        .replace(/\u00a0/g, ' ')
+        .replace(/([^\s])((?:https?:\/\/|pic\.twitter\.com\/))/g, '$1\n$2')
+        .replace(/(?:\s+https:\/\/t\.co\/[A-Za-z0-9]+)+$/g, '')
+        .replace(/(?:^|\s+)pic\.twitter\.com\/\S+/g, '')
+        .replace(/^pic\.twitter\.com\/\S+$/gim, '')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n[ \t]+/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+    },
+    decodeJsonString (value) {
+      if (!value) return ''
+
+      try {
+        return JSON.parse('"' + value.replace(/"/g, '\\"') + '"')
+      } catch (error) {
+        return value
+      }
     },
     normalizeTweetImage (imageUrl) {
       if (!imageUrl) return ''
@@ -629,6 +735,35 @@ export default {
       const target = url ? url.pathname + url.search + url.hash : text
       if (DIRECT_IMAGE_PATTERN.test(target)) return [text]
       return null
+    },
+    getVerbImageCandidates (text) {
+      const url = this.parseURL(text)
+      if (url === null) return null
+
+      if (VERB_DIRECT_IMAGE_HOSTS.includes(url.host)) {
+        return this.buildVerbImageCandidates(url.pathname.split('/').filter(Boolean))
+      }
+
+      if (VERB_PAGE_HOSTS.includes(url.host)) {
+        const pathParts = url.pathname.split('/').filter(Boolean)
+        if (pathParts[0] !== 'view') return null
+        return this.buildVerbImageCandidates(pathParts.slice(1))
+      }
+
+      return null
+    },
+    buildVerbImageCandidates (pathParts) {
+      if (pathParts.length !== 1) return null
+
+      const imageName = pathParts[0]
+      const match = /^([A-Za-z0-9_-]+)(?:\.(png|jpg|jpeg|gif|webp))?$/i.exec(imageName)
+      if (!match || !match[1]) return null
+
+      const imageId = match[1]
+      const extension = match[2] ? match[2].toLowerCase() : ''
+      if (extension) return ['https://i.verb.tw/' + imageId + '.' + extension]
+
+      return VERB_EXTENSIONS.map(nextExtension => 'https://i.verb.tw/' + imageId + '.' + nextExtension)
     },
     getKnownHostImageCandidates (text) {
       const url = this.parseURL(text)
@@ -715,33 +850,34 @@ export default {
   max-width: 360px;
   max-height: 520px;
   overflow: hidden;
-  padding: 0.75rem;
+  padding: 12px;
+  font-size: 16px;
   color: #111827;
   background: rgba(255, 255, 255, 0.98);
   border: 1px solid rgba(15, 23, 42, 0.16);
-  border-radius: 0.75rem;
+  border-radius: 12px;
   box-shadow: 0 18px 38px rgba(15, 23, 42, 0.2);
 }
 
 .ptt-chat-preview-card__header {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  margin-bottom: 8px;
+  font-size: 14px;
 }
 
 .ptt-chat-preview-card__identity {
   display: flex;
-  gap: 0.45rem;
+  gap: 7px;
   align-items: center;
   min-width: 0;
 }
 
 .ptt-chat-preview-card__avatar {
   flex: 0 0 auto;
-  width: 2rem;
-  height: 2rem;
+  width: 32px;
+  height: 32px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 999px;
   object-fit: cover;
@@ -751,9 +887,9 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  padding: 0 0.35rem;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
   color: #fff;
   font-weight: 700;
   background: #111827;
@@ -771,14 +907,14 @@ export default {
 .ptt-chat-preview-card__text,
 .ptt-chat-preview-card__description,
 .ptt-chat-preview-card__meta {
-  font-size: 0.9rem;
+  font-size: 14px;
   line-height: 1.4;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .ptt-chat-preview-card__text {
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .ptt-chat-preview-card__description,
@@ -787,13 +923,13 @@ export default {
 }
 
 .ptt-chat-preview-card__description {
-  margin-top: 0.5rem;
+  margin-top: 8px;
 }
 
 .ptt-chat-preview-card__image-wrap {
   position: relative;
   overflow: hidden;
-  border-radius: 0.5rem;
+  border-radius: 8px;
 }
 
 .ptt-chat-preview-card__image {
@@ -802,24 +938,24 @@ export default {
   max-height: 240px;
   object-fit: cover;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 0.5rem;
+  border-radius: 8px;
 }
 
 .ptt-chat-preview-card__image-count {
   position: absolute;
-  top: 0.7rem;
-  right: 0.7rem;
-  min-width: 2.5rem;
-  padding: 0.32rem 0.62rem;
+  top: 11px;
+  right: 11px;
+  min-width: 40px;
+  padding: 5px 10px;
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1;
   text-align: center;
   letter-spacing: 0.02em;
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 0.75rem;
+  border-radius: 12px;
   box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
