@@ -92,7 +92,6 @@ const IMGUR_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
 const VERB_DIRECT_IMAGE_HOSTS = ['i.verb.tw']
 const VERB_PAGE_HOSTS = ['img.verb.tw']
 const VERB_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
-const BLOB_PREVIEW_HOSTS = ['i.verb.tw']
 const MEEE_DIRECT_IMAGE_HOSTS = ['i.mee.com.tw', 'i.meee.com.tw']
 const MEEE_PAGE_HOSTS = ['meee.com.tw', 'www.meee.com.tw']
 const MEEE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
@@ -142,7 +141,7 @@ export default {
 
   computed: {
     preview: function () {
-      if (this.previewType === 'image') return this.previewImageURL !== ''
+      if (this.previewType === 'image') return this.resolvedPreviewImageURL !== ''
       if (this.previewType === 'tweet') return this.tweetCard.visible
       return false
     },
@@ -251,7 +250,6 @@ export default {
         return
       }
 
-      this.resolvedPreviewImageURL = ''
       const tweetUrl = this.getTweetCanonicalUrl(value)
       if (tweetUrl !== null) {
         this.previewType = 'tweet'
@@ -260,7 +258,6 @@ export default {
       }
 
       this.previewType = 'none'
-      this.resolvedPreviewImageURL = ''
       this.resetTweetCard()
     },
     resetTweetCard () {
@@ -304,7 +301,7 @@ export default {
     shouldUseBlobPreview (text) {
       const url = this.parseURL(text)
       if (url === null) return false
-      return BLOB_PREVIEW_HOSTS.includes(url.host)
+      return VERB_DIRECT_IMAGE_HOSTS.includes(url.host)
     },
     handleImageLoad () {
       const imageElement = this.$refs.imgel
@@ -589,8 +586,9 @@ export default {
       const description = this.getMetaContent(doc, 'meta[property="og:description"]') || this.getMetaContent(doc, 'meta[name="twitter:description"]')
       const image = this.getMetaContent(doc, 'meta[property="og:image"]') || this.getMetaContent(doc, 'meta[name="twitter:image"]')
       const media = this.extractTweetMediaInfo(html)
-      const author = this.extractTweetAuthor(title) || this.extractTweetAuthorFromHtml(html)
-      const authorUrl = this.extractTweetAuthorUrlFromHtml(html)
+      const authorInfo = this.extractTweetAuthorInfoFromHtml(html)
+      const author = this.extractTweetAuthor(title) || authorInfo.author
+      const authorUrl = authorInfo.authorUrl
       const avatar = this.extractTweetAuthorAvatar(html)
       const text = this.extractTweetText(description, author) || this.extractTweetTextFromHtml(html)
 
@@ -609,7 +607,6 @@ export default {
       container.innerHTML = response && response.html ? response.html : ''
 
       const paragraph = container.querySelector('blockquote.twitter-tweet > p')
-      const authorAnchor = container.querySelector('blockquote.twitter-tweet > a')
       const authorText = response && response.author_name ? response.author_name : ''
 
       return {
@@ -619,8 +616,7 @@ export default {
         text: this.extractTweetTextFromElement(paragraph),
         description: '',
         image: '',
-        mediaCount: 0,
-        sourceUrl: authorAnchor ? authorAnchor.href : ''
+        mediaCount: 0
       }
     },
     extractTweetTextFromElement (element) {
@@ -663,21 +659,19 @@ export default {
 
       return this.normalizeTweetText(this.decodeJsonString(rawText))
     },
-    extractTweetAuthorFromHtml (html) {
-      if (!html) return ''
+    extractTweetAuthorInfoFromHtml (html) {
+      if (!html) return { author: '', authorUrl: '' }
 
       const match = html.match(/"name":"((?:\\.|[^"\\])+)","screen_name":"((?:\\.|[^"\\])+)"/)
-      if (!match || !match[1]) return ''
+      if (!match) return { author: '', authorUrl: '' }
 
-      return this.decodeJsonString(match[1]).trim()
-    },
-    extractTweetAuthorUrlFromHtml (html) {
-      if (!html) return ''
+      const author = match[1] ? this.decodeJsonString(match[1]).trim() : ''
+      const screenName = match[2] ? this.decodeJsonString(match[2]).trim() : ''
 
-      const match = html.match(/"name":"((?:\\.|[^"\\])+)","screen_name":"((?:\\.|[^"\\])+)"/)
-      if (!match || !match[2]) return ''
-
-      return 'https://x.com/' + this.decodeJsonString(match[2]).trim()
+      return {
+        author,
+        authorUrl: screenName ? 'https://x.com/' + screenName : ''
+      }
     },
     normalizeTweetText (text) {
       if (!text) return ''
