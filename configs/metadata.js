@@ -28,6 +28,13 @@ module.exports = {
     'GM_registerMenuCommand',
     'GM_unregisterMenuCommand'
   ],
+  connect: [
+    'x.com',
+    'www.x.com',
+    'twitter.com',
+    'www.twitter.com',
+    'publish.twitter.com'
+  ],
   'run-at': 'document-body',
   require: [],
   homepageURL:

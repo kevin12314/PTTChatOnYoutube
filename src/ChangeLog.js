@@ -20,6 +20,7 @@ export default function ChangeLog () {
     changeLogInfo.v_4_1 = new Info()
     changeLogInfo.v_4_1.Youtube.push('新增聊天室圖片連結懸停預覽，滑鼠停留片刻後會顯示圖片預覽。')
     changeLogInfo.v_4_1.Youtube.push('支援直接圖片連結、Imgur 頁面連結、Meee 圖床連結，以及 YouTube 影片縮圖預覽。')
+    changeLogInfo.v_4_1.Youtube.push('新增 X/Twitter 貼文連結懸停預覽 MVP，支援 x.com 與 twitter.com 的 status 連結顯示貼文卡片。')
     changeLogInfo.v_4_1.Youtube.push('改善圖片預覽定位邏輯，預覽視窗會依據目前滑鼠位置與瀏覽器邊界自動調整顯示位置。')
     changeLogInfo.v_4_1.Youtube.push('修正 YouTube 劇院模式下，PTTChat 可能掛到錯誤聊天室容器，導致版面跑掉的問題。')
     changeLogInfo.v_4_1.Youtube.push('修正 YouTube 切換劇院模式時，PTT iframe 可能被重建，進而造成登入狀態異常或登入按鈕無反應的問題。')
