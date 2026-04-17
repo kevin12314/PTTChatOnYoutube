@@ -444,12 +444,15 @@ export default {
         // Local/dev pages may be blocked by publish.twitter.com CORS changes; fall back to tweet HTML.
       }
 
-      const html = await this.gmRequest(tweetUrl, 'text')
-      return this.parseTweetPreviewFromHtml(html)
+      const html = await this.gmRequest(tweetUrl, 'text', { anonymous: true })
+      const parsedFromHtml = this.parseTweetPreviewFromHtml(html)
+      return parsedFromHtml
     },
     async ensureTweetAvatar (tweetUrl, authorUrl) {
       if (!authorUrl) return
-      if (this.tweetPreviewCache[tweetUrl] && this.tweetPreviewCache[tweetUrl].avatar) return
+      if (this.tweetPreviewCache[tweetUrl] && this.tweetPreviewCache[tweetUrl].avatar) {
+        return
+      }
 
       const avatar = await this.resolveTweetAuthorAvatar(authorUrl)
       if (!avatar) return
@@ -501,11 +504,13 @@ export default {
     },
     async resolveTweetAuthorAvatar (authorUrl) {
       if (!authorUrl) return ''
-      if (Object.prototype.hasOwnProperty.call(this.tweetAvatarCache, authorUrl)) return this.tweetAvatarCache[authorUrl]
+      if (Object.prototype.hasOwnProperty.call(this.tweetAvatarCache, authorUrl)) {
+        return this.tweetAvatarCache[authorUrl]
+      }
 
       try {
-        const html = await this.gmRequest(authorUrl, 'text')
-        const avatar = this.extractTweetAuthorAvatar(html)
+        const html = await this.gmRequest(authorUrl, 'text', { anonymous: true })
+        const avatar = this.extractTweetAuthorAvatar(html, authorUrl)
         this.tweetAvatarCache = {
           ...this.tweetAvatarCache,
           [authorUrl]: avatar
@@ -524,7 +529,7 @@ export default {
       if (Object.prototype.hasOwnProperty.call(this.tweetMediaCache, tweetUrl)) return this.tweetMediaCache[tweetUrl]
 
       try {
-        const html = await this.gmRequest(tweetUrl, 'text')
+        const html = await this.gmRequest(tweetUrl, 'text', { anonymous: true })
         const media = this.extractTweetMediaInfo(html)
         this.tweetMediaCache = {
           ...this.tweetMediaCache,
@@ -539,15 +544,16 @@ export default {
         return { image: '', count: 0 }
       }
     },
-    gmRequest (url, responseType) {
+    gmRequest (url, responseType, options = {}) {
       if (typeof GM_xmlhttpRequest !== 'function') {
-        return this.fetchRequest(url, responseType)
+        return this.fetchRequest(url, responseType, options)
       }
 
       return new Promise((resolve, reject) => {
         GM_xmlhttpRequest({
           method: 'GET',
           url,
+          anonymous: Boolean(options.anonymous),
           responseType,
           headers: {
             Accept: responseType === 'json' ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml'
@@ -555,7 +561,7 @@ export default {
           onload: response => {
             if (response.status >= 200 && response.status < 300) {
               if (responseType === 'json') resolve(response.response)
-              else resolve(response.responseText || '')
+              else resolve(response.responseText || response.response || '')
               return
             }
             reject(new Error('Request failed with status ' + response.status))
@@ -565,9 +571,10 @@ export default {
         })
       })
     },
-    async fetchRequest (url, responseType) {
+    async fetchRequest (url, responseType, options = {}) {
       const response = await fetch(url, {
         method: 'GET',
+        credentials: options.anonymous ? 'omit' : 'same-origin',
         headers: {
           Accept: responseType === 'json' ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml'
         }
@@ -589,7 +596,7 @@ export default {
       const authorInfo = this.extractTweetAuthorInfoFromHtml(html)
       const author = this.extractTweetAuthor(title) || authorInfo.author
       const authorUrl = authorInfo.authorUrl
-      const avatar = this.extractTweetAuthorAvatar(html)
+      const avatar = this.extractTweetAuthorAvatar(html, authorUrl)
       const text = this.extractTweetText(description, author) || this.extractTweetTextFromHtml(html)
 
       return {
@@ -673,6 +680,12 @@ export default {
         authorUrl: screenName ? 'https://x.com/' + screenName : ''
       }
     },
+    extractTweetScreenNameFromUrl (authorUrl) {
+      if (!authorUrl) return ''
+
+      const match = authorUrl.match(/^https?:\/\/(?:www\.)?(?:twitter|x)\.com\/([^/?#]+)/i)
+      return match && match[1] ? match[1].trim() : ''
+    },
     normalizeTweetText (text) {
       if (!text) return ''
 
@@ -701,13 +714,38 @@ export default {
       if (/amplify_video_thumb|profile_images|abs-0\.twimg\.com/i.test(imageUrl)) return ''
       return imageUrl
     },
-    extractTweetAuthorAvatar (html) {
+    extractTweetAuthorAvatar (html, authorUrl = '') {
       if (!html) return ''
 
-      const match = html.match(/https:\/\/pbs\.twimg\.com\/profile_images\/[^"'\\\s<]+/i)
-      if (!match || !match[0]) return ''
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(html, 'text/html')
+      const normalizedHtml = html
+        .replace(/&quot;/ig, '"')
+        .replace(/&#34;/ig, '"')
+        .replace(/\\u0022/ig, '"')
+        .replace(/\\u003a/ig, ':')
+        .replace(/\\u002f/ig, '/')
+        .replace(/\\\//g, '/')
+      const metaAvatar = this.getMetaContent(doc, 'meta[name="twitter:image"]') || this.getMetaContent(doc, 'meta[property="og:image"]')
+      const screenName = this.extractTweetScreenNameFromUrl(authorUrl)
+      const escapedScreenName = screenName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const fieldPattern = screenName
+        ? new RegExp('["\']screen_name["\']\\s*:\\s*["\']' + escapedScreenName + '["\'][\\s\\S]{0,12000}?["\']profile_image_url_https["\']\\s*:\\s*["\']([^"\']+)["\']|["\']screen_name["\']\\s*:\\s*["\']' + escapedScreenName + '["\'][\\s\\S]{0,12000}?["\']profile_image_url["\']\\s*:\\s*["\']([^"\']+)["\']', 'i')
+        : /["']profile_image_url_https["']\s*:\s*["']([^"']+)["']|["']profile_image_url["']\s*:\s*["']([^"']+)["']/
+      const fieldMatch = normalizedHtml.match(fieldPattern)
+      const fieldAvatar = fieldMatch
+        ? this.decodeJsonString(fieldMatch[1] || fieldMatch[2] || '')
+        : ''
 
-      return match[0].replace(/_normal(?=\.[a-z0-9]+(?:[?#].*)?$)/i, '_200x200')
+      if (metaAvatar && /profile_images/i.test(metaAvatar)) {
+        return metaAvatar.replace(/_normal(?=\.[a-z0-9]+(?:[?#].*)?$)/i, '_200x200')
+      }
+
+      if (fieldAvatar && /profile_images/i.test(fieldAvatar)) {
+        return fieldAvatar.replace(/_normal(?=\.[a-z0-9]+(?:[?#].*)?$)/i, '_200x200')
+      }
+
+      return ''
     },
     extractTweetMediaInfo (html) {
       if (!html) return { image: '', count: 0 }
