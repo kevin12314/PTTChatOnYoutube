@@ -58,7 +58,19 @@ export default {
     ...Vuex.mapGetters(['getDeleteOtherConnect', 'pttState'])
   },
   methods: {
+    syncHolodexTargetWindow: function () {
+      if (this.msg.ownerorigin !== 'https://holodex.net') return this.msg.targetWindow
+
+      const pttFrame = document.getElementById('PTTframe')
+      if (pttFrame && pttFrame.contentWindow) {
+        this.msg.targetWindow = pttFrame.contentWindow
+      }
+
+      return this.msg.targetWindow
+    },
     login: function () {
+      this.syncHolodexTargetWindow()
+
       if (this.id === '' || this.pw === '') {
         this.$store.dispatch('Alert', { type: 0, msg: '帳號或密碼不得為空。' })
         return
