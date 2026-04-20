@@ -67,7 +67,19 @@ module.exports = {
       },
       {
         test: /\.scss$/,
-        use: ['vue-style-loader', 'css-loader', 'sass-loader']
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              sassOptions: {
+                quietDeps: true,
+                silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function']
+              }
+            }
+          }
+        ]
       }
     ]
   },

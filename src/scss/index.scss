@@ -1,11 +1,15 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+
 $ptt-theme-colors: (
 );
 
 @for $colorlight from 0 through 20 {
   $map: (
-    pttbgc-#{$colorlight}: lighten(#000, $colorlight * 5%)
+    pttbgc-#{$colorlight}: color.adjust(#000, $lightness: $colorlight * 5%)
   );
-$ptt-theme-colors: map-merge($ptt-theme-colors, $map);
+  $ptt-theme-colors: map.merge($ptt-theme-colors, $map);
 }
 
 $ptt-theme-reversecolor: (
@@ -14,9 +18,9 @@ $ptt-theme-reversecolor: (
 @for $colorlight from 0 through 10 {
   $colorreverse: 10-$colorlight;
   $map: (
-    pttc-#{$colorreverse}: lighten(#000, $colorlight * 10%)
+    pttc-#{$colorreverse}: color.adjust(#000, $lightness: $colorlight * 10%)
   );
-$ptt-theme-reversecolor: map-merge($ptt-theme-reversecolor, $map);
+  $ptt-theme-reversecolor: map.merge($ptt-theme-reversecolor, $map);
 }
 
 $chat-type: #fff;
@@ -245,20 +249,19 @@ $font-size-base: 12px;
 
   @function darken-color($color, $bgcolor, $warning: false) {
     $darkenpercent: 30%;
-    $clightness: lightness($color);
-    $bglightness: lightness($bgcolor);
+    $clightness: color.channel($color, "lightness", $space: hsl);
+    $bglightness: color.channel($bgcolor, "lightness", $space: hsl);
 
     @if $bglightness >55% {
-      $bglightness: (
-        $bglightness - 100%) * $darkenpercent/100%/100% - 0.5;
+      $bglightness: math.div(math.div(($bglightness - 100%) * $darkenpercent, 100%), 100%) - 0.5;
     }
 
     @else {
-      $bglightness: $bglightness * $darkenpercent/100%/100%;
+      $bglightness: math.div(math.div($bglightness * $darkenpercent, 100%), 100%);
     }
 
     $darken: $clightness * $bglightness;
-    $newcolor: adjust-color($color, $lightness: $darken
+    $newcolor: color.adjust($color, $lightness: $darken
     );
 
   @if $warning {
