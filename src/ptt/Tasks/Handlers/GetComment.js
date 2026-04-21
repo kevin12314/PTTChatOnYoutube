@@ -1,10 +1,12 @@
+import { createPttCommentTime } from '../../pttTime.js'
+
 function getComment (content, commentResult) {
   const commentData = {}
   commentData.type = commentResult[1]
   commentData.id = commentResult[2]
   commentData.content = content
-  commentData.date = new Date(this.postData.postTime.getFullYear(), commentResult[4] - 1, commentResult[5], commentResult[6], commentResult[7])
-  if (commentData.date.getTime() - this.postData.postTime.getTime() < -1000 * 60 * 60 * 24 * 360)commentData.date.setFullYear(commentData.date.getFullYear() + 1)
+  commentData.date = createPttCommentTime(this.postData.postTime.getUTCFullYear(), +commentResult[4], +commentResult[5], +commentResult[6], +commentResult[7])
+  if (commentData.date.getTime() - this.postData.postTime.getTime() < -1000 * 60 * 60 * 24 * 360)commentData.date.setUTCFullYear(commentData.date.getUTCFullYear() + 1)
   return commentData
 }
 

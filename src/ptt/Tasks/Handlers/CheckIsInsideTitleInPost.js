@@ -1,4 +1,5 @@
 import { FrameState } from 'PttController/PttState.js'
+import { parsePttPostTime } from '../../pttTime.js'
 
 function backToBoard () {
   this.insertText('qq')
@@ -36,7 +37,8 @@ export default function CheckIsInsideTitleInPost () {
       this.postData.haveNormalInsideTitle = isPostHaveNormalInsideTitle !== null
       const result = this.match(/時間 {2}(\S{3} \S{3} ...\d{2}:\d{2}:\d{2} \d{4})/)
       if (showAllLog)console.log('this.postData.postTime', result)
-      this.postData.postTime = result ? new Date(result[1]) : new Date(Date.now())
+      const parsedPostTime = result ? parsePttPostTime(result[1]) : null
+      this.postData.postTime = parsedPostTime || new Date(Date.now())
     }
     this.recieveData.title = this.postData.insideTitle
     this.recieveData.date = this.postData.postTime
