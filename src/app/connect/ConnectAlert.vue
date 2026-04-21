@@ -51,11 +51,12 @@ export default {
       this.alert.splice(index, 1)
     },
     addAlert (items) {
+      const newItems = []
       for (let i = 0; i < items.length; i++) {
-        items[i].no = this.serialNumber
+        newItems.push({ ...items[i], no: this.serialNumber })
         this.serialNumber++
       }
-      this.alert = this.alert.concat(items)
+      this.alert = this.alert.concat(newItems)
       this.$store.dispatch('ClearAlert')
       return this.alert
     }

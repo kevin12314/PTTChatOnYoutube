@@ -20,6 +20,7 @@ export default function ChangeLog () {
     changeLogInfo.v_4_2 = new Info()
     changeLogInfo.v_4_2.版本.push('新增 X/Twitter 貼文連結懸停預覽 MVP，支援 x.com 與 twitter.com 的 status 連結顯示貼文卡片。')
     changeLogInfo.v_4_2.版本.push('新增 verb.tw 圖床圖片預覽支援，現在可辨識 i.verb.tw 直連與 img.verb.tw/view 圖片頁連結。')
+    changeLogInfo.v_4_2.HoloDex.push('修正使用腳本時會使Holodex撥放影片時無法正常隱藏控制項的問題。')
 
     changeLogInfo.v_4_1 = new Info()
     changeLogInfo.v_4_1.Youtube.push('新增聊天室圖片連結懸停預覽，滑鼠停留片刻後會顯示圖片預覽。')

@@ -20,7 +20,9 @@ export default {
       isAutoScroll: true,
       lastautoscrolltime: Date.now(),
       ChatElement: ChatElement,
-      scrolloffset: 0
+      scrolloffset: 0,
+      chatEventBound: false,
+      pendingBindTimer: null
     }
   },
   methods: {
@@ -130,7 +132,20 @@ export default {
       this.scrollToChat()
     },
     AddEventHandler: function () {
-      const list = this.$refs.chatmain.$el
+      if (this.chatEventBound) return
+
+      const chatmain = this.$refs.chatmain
+      const list = chatmain && chatmain.$el
+      if (!list) {
+        if (this.pendingBindTimer) clearTimeout(this.pendingBindTimer)
+        this.pendingBindTimer = window.setTimeout(() => {
+          this.pendingBindTimer = null
+          this.AddEventHandler()
+        }, 50)
+        return
+      }
+
+      this.chatEventBound = true
       // 使用者滾輪事件
       if (list.addEventListener) {
         list.addEventListener('mousewheel', this.MouseWheelHandler, false)// IE9, Chrome, Safari, Opera
@@ -221,6 +236,7 @@ export default {
     this.intervalScroll = window.setInterval(() => { this.updateChat() }, 500)
   },
   beforeUnmount () {
+    if (this.pendingBindTimer) clearTimeout(this.pendingBindTimer)
     clearInterval(this.intervalChat)
     clearInterval(this.intervalScroll)
   },
@@ -235,11 +251,16 @@ export default {
   render () {
     return h('div', {
       id: 'PTTChat-contents-Chat-main',
-      class: 'h-100 d-flex flex-column'
+      class: 'h-100 d-flex flex-column overflow-hidden',
+      style: {
+        minHeight: '0'
+      }
     }, [
       h(DynamicScroller, {
         ref: 'chatmain',
         style: {
+          flex: '1 1 auto',
+          minHeight: '0',
           overscrollBehavior: 'none',
           overflowY: 'scroll',
           overflowX: 'hidden',

@@ -4,6 +4,24 @@ import { createApp, h, markRaw } from 'vue'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import { store } from './store/store'
 let appinscount = 0
+
+function createScopedId (baseId, instanceId) {
+  return instanceId ? `${baseId}-${instanceId}` : baseId
+}
+
+function normalizeInitAppOptions (legacyOptions) {
+  if (!legacyOptions || typeof legacyOptions !== 'object' || Array.isArray(legacyOptions)) {
+    return {
+      instanceId: '',
+      shellMode: 'classic'
+    }
+  }
+
+  return {
+    instanceId: legacyOptions.instanceId || '',
+    shellMode: legacyOptions.shellMode || 'classic'
+  }
+}
 /**
  *
  * @param {*} chatContainer
@@ -16,12 +34,35 @@ export default function InitApp (
   isWhitetheme,
   isStreaming,
   messagePoster,
-  siteName
+  siteName,
+  options
 ) {
   // generate crypt key everytime;
-  InitChatApp(chatContainer)
+  return InitChatApp(chatContainer)
   function InitChatApp (cn) {
+    const normalizedOptions = normalizeInitAppOptions(options)
     const shouldSyncPluginHeight = siteName === 'Youtube'
+    const rootIds = {
+      mountId: createScopedId('PTTChatMount', normalizedOptions.instanceId),
+      rootId: createScopedId('PTTChat', normalizedOptions.instanceId),
+      panelId: createScopedId('PTTMain', normalizedOptions.instanceId),
+      appRootId: createScopedId('PTTChat-app', normalizedOptions.instanceId),
+      navbarId: createScopedId('PTTChat-navbar', normalizedOptions.instanceId),
+      contentsId: createScopedId('PTTChat-contents', normalizedOptions.instanceId),
+      chatNavId: createScopedId('nav-item-Chat', normalizedOptions.instanceId),
+      connectNavId: createScopedId('nav-item-Connect', normalizedOptions.instanceId),
+      otherNavId: createScopedId('nav-item-other', normalizedOptions.instanceId),
+      pttNavId: createScopedId('nav-item-PTT', normalizedOptions.instanceId),
+      logNavId: createScopedId('nav-item-log', normalizedOptions.instanceId),
+      timeSetNavId: createScopedId('nav-item-TimeSet', normalizedOptions.instanceId),
+      timeCollapseId: createScopedId('PTTChat-Time', normalizedOptions.instanceId),
+      chatPaneId: createScopedId('PTTChat-contents-Chat', normalizedOptions.instanceId),
+      connectPaneId: createScopedId('PTTChat-contents-Connect', normalizedOptions.instanceId),
+      otherPaneId: createScopedId('PTTChat-contents-other', normalizedOptions.instanceId),
+      pttPaneId: createScopedId('PTTChat-contents-PTT', normalizedOptions.instanceId),
+      pttPaneMainId: createScopedId('PTTChat-contents-PTT-main', normalizedOptions.instanceId),
+      logPaneId: createScopedId('PTTChat-contents-log', normalizedOptions.instanceId)
+    }
 
     function getChatContainerHeight () {
       const containerElement = cn && cn[0]
@@ -75,12 +116,24 @@ export default function InitApp (
     const ele = document.createElement('div')
     // Keep mount container ID distinct so selector-based layout logic always targets
     // the rendered app root (#PTTChat) instead of an empty wrapper.
-    ele.id = 'PTTChatMount'
+    ele.id = rootIds.mountId
+    ele.className = normalizedOptions.shellMode === 'embedded' ? 'w-100 h-100 d-flex' : 'w-100 d-flex'
+    ele.style.width = '100%'
+    ele.style.display = 'flex'
+    ele.style.minWidth = '0'
+    if (normalizedOptions.shellMode === 'embedded') {
+      ele.style.height = '100%'
+      ele.style.flex = '1 1 auto'
+      ele.style.flexDirection = 'column'
+      ele.style.alignSelf = 'stretch'
+    }
     if (cn) cn[0].appendChild(ele)
     const bootsrtapicon = document.createElement('link')
     bootsrtapicon.setAttribute('rel', 'stylesheet')
     bootsrtapicon.setAttribute('href', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.2/font/bootstrap-icons.css')
     if (cn) cn[0].appendChild(bootsrtapicon)
+    const instanceIndex = appinscount
+    let isUnmounted = false
 
     const themewhite = 'pttbgc-19 pttc-5'
     const themedark = 'pttbgc-2 pttc-2'
@@ -105,12 +158,13 @@ export default function InitApp (
         return {
           msg: markRaw(this.rootmsg),
           isStream: isStreaming,
-          nowPluginWidth: GM_getValue('PluginWidth', 400)
+          nowPluginWidth: GM_getValue('PluginWidth', 400),
+          pttInstanceId: normalizedOptions.instanceId
         }
       },
       data () {
         return {
-          index: appinscount,
+          index: instanceIndex,
           rootmsg: markRaw(messagePoster),
           player: document.getElementsByTagName('video')[0],
           playertime: null,
@@ -122,7 +176,9 @@ export default function InitApp (
       },
       computed: {
         classes: function () {
-          const classes = ['position-absolute', 'w-100']
+          const classes = normalizedOptions.shellMode === 'embedded'
+            ? ['ptt-root', 'w-100', 'h-100']
+            : ['ptt-root', 'position-absolute', 'w-100']
           if (reportMode) console.log('Appindex set theme', this.getTheme)
           switch (+this.getTheme) {
             case 0:
@@ -191,10 +247,10 @@ export default function InitApp (
           } else clearInterval(this.playertime)
         }, 1000)
         this.exist = window.setInterval(() => {
-          const self = document.querySelector('#PTTChat[ins="' + this.index + '"')
+          const self = document.querySelector('#' + rootIds.rootId + '[ins="' + this.index + '"]')
           if (!self) {
             if (showAllLog)console.log('Instance ' + this.index + ' destroyed.')
-            app.unmount()
+            appHandle.unmount()
           } else {
             // console.log("Instance " + this.index + " alive.");
           }
@@ -273,19 +329,32 @@ export default function InitApp (
         clearInterval(this.exist)
       },
       render () {
-        const rootStyle = { top: '0px' }
-        if (siteName === 'Youtube') {
+        const rootStyle = {}
+        if (normalizedOptions.shellMode !== 'embedded') {
+          rootStyle.top = '0px'
+        }
+        if (siteName === 'Youtube' && normalizedOptions.shellMode !== 'embedded') {
           rootStyle.pointerEvents = 'none'
         }
 
+        const rootClasses = ['w-100']
+        if (normalizedOptions.shellMode === 'embedded') {
+          rootClasses.push('h-100')
+        } else {
+          rootClasses.push('position-absolute')
+        }
+
         return h('div', {
-          id: 'PTTChat',
-          class: this.classes,
+          id: rootIds.rootId,
+          class: [...rootClasses, this.classes],
           ins: this.index,
           style: rootStyle
         }, [
-          h(PttAppButton),
-          h(PttApp)
+          ...(normalizedOptions.shellMode === 'embedded' ? [] : [h(PttAppButton)]),
+          h(PttApp, {
+            instanceId: normalizedOptions.instanceId,
+            shellMode: normalizedOptions.shellMode
+          })
         ])
       }
     }
@@ -296,5 +365,31 @@ export default function InitApp (
     app.component('DynamicScroller', DynamicScroller)
     app.component('DynamicScrollerItem', DynamicScrollerItem)
     app.mount(ele)
+
+    const appHandle = {
+      app,
+      mountElement: ele,
+      containerElement: cn && cn[0] ? cn[0] : null,
+      bootstrapIconElement: bootsrtapicon,
+      index: instanceIndex,
+      instanceId: normalizedOptions.instanceId,
+      shellMode: normalizedOptions.shellMode,
+      ids: rootIds,
+      unmount () {
+        if (isUnmounted) return
+        isUnmounted = true
+
+        try {
+          app.unmount()
+        } catch (error) {
+          if (reportMode) console.log('InitApp unmount failed', error)
+        }
+
+        if (ele.parentNode) ele.parentNode.removeChild(ele)
+        if (bootsrtapicon.parentNode) bootsrtapicon.parentNode.removeChild(bootsrtapicon)
+      }
+    }
+
+    return appHandle
   }
 }

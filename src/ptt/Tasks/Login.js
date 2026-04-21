@@ -1,13 +1,19 @@
 import { Ptt } from '../PttController/Ptt.js'
 
-const cryptkey = GM_getValue('cryptkey', Math.random())
-
 let TryLogin
 /**
  * @typedef {import("../PttController/Ptt").Ptt} Ptt
  * @this {Ptt}
  */
 export function Login (data) {
+  // Read cryptkey fresh each time so it matches the key generated when the
+  // site-side ConnectLogin component was created (GenerateCryptKey writes it).
+  const cryptkey = GM_getValue('cryptkey', null)
+  if (!cryptkey) {
+    this.msg.PostMessage('alert', { type: 0, msg: '加密錯誤' })
+    this.endTask()
+    return
+  }
   const decryptedId = CryptoJS.AES.decrypt(data.id, cryptkey).toString(CryptoJS.enc.Utf8)
   const decryptedPassword = CryptoJS.AES.decrypt(data.pw, cryptkey).toString(CryptoJS.enc.Utf8)
   TryLogin = 2

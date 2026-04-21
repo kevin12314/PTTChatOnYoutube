@@ -1,23 +1,58 @@
 <template>
   <div
-    id="PTTMain"
-    class="pttchat rounded-right position-absolute rounded-bottom w-100 collapse"
+    :id="panelId"
+    :class="shellClasses"
   >
-    <PTTAppMain :style="updateheight" />
+    <PTTAppMain
+      :instance-id="instanceId"
+      :shell-mode="shellMode"
+      :style="panelContentStyle"
+    />
   </div>
 </template>
 
 <script>
 import PTTAppMain from './PttAppMain.vue'
+
 export default {
   components: {
     PTTAppMain: PTTAppMain
   },
+  props: {
+    instanceId: {
+      type: String,
+      default: ''
+    },
+    shellMode: {
+      type: String,
+      default: 'classic'
+    }
+  },
   computed: {
-    updateheight () {
+    panelId () {
+      return this.instanceId ? `PTTMain-${this.instanceId}` : 'PTTMain'
+    },
+    panelContentStyle () {
+      if (this.shellMode === 'embedded') {
+        return {
+          height: '100%'
+        }
+      }
+
       return {
         height: this.$store.getters.getPluginHeight + 'px'
       }
+    },
+    shellClasses () {
+      const classes = ['pttchat', 'rounded-bottom', 'w-100']
+
+      if (this.shellMode === 'embedded') {
+        classes.push('h-100', 'd-flex', 'flex-column')
+      } else {
+        classes.push('rounded-right', 'position-absolute', 'collapse')
+      }
+
+      return classes
     }
   },
   mounted () {
@@ -34,7 +69,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-div {
+.pttchat {
   z-index: 3010 !important;
   pointer-events: auto;
 }

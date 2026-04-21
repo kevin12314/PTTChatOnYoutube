@@ -1,6 +1,6 @@
 <template>
   <div
-    id="PTTChat-contents-PTT-main"
+    :id="paneMainId"
     class="h-100 w-100 d-flex justify-content-start overflow-hidden px-0"
   >
     <ptt-screen-iframe
@@ -13,6 +13,12 @@
 <script>
 import PttScreenIframe from './PttScreenIframe.vue'
 export default {
+  props: {
+    paneMainId: {
+      type: String,
+      default: 'PTTChat-contents-PTT-main'
+    }
+  },
   components: {
     'ptt-screen-iframe': PttScreenIframe
   },

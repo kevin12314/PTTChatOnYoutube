@@ -1,6 +1,6 @@
 <template>
   <ul
-    id="PTTChat-navbar"
+    :id="instanceIds.navbarId"
     class="nav nav-tabs justify-content-center"
     role="tablist"
   >
@@ -9,14 +9,14 @@
       :go="isGotoChat"
     >
       <button
-        id="nav-item-Chat"
+        :id="instanceIds.chatNavId"
         ref="chatbtn"
         class="nav-link ptt-text bg-transparent"
         type="button"
         data-bs-toggle="tab"
-        data-bs-target="#PTTChat-contents-Chat"
+        :data-bs-target="`#${instanceIds.chatPaneId}`"
         role="tab"
-        aria-controls="PTTChat-contents-Chat"
+        :aria-controls="instanceIds.chatPaneId"
         aria-selected="false"
         @click="showTab"
       >
@@ -25,13 +25,13 @@
     </li>
     <li class="nav-item">
       <button
-        id="nav-item-Connect"
+        :id="instanceIds.connectNavId"
         class="nav-link ptt-text bg-transparent active"
         type="button"
         data-bs-toggle="tab"
-        data-bs-target="#PTTChat-contents-Connect"
+        :data-bs-target="`#${instanceIds.connectPaneId}`"
         role="tab"
-        aria-controls="PTTChat-contents-Connect"
+        :aria-controls="instanceIds.connectPaneId"
         aria-selected="true"
         @click="showTab"
       >
@@ -40,13 +40,13 @@
     </li>
     <li class="nav-item">
       <button
-        id="nav-item-other"
+        :id="instanceIds.otherNavId"
         class="nav-link ptt-text bg-transparent"
         type="button"
         data-bs-toggle="tab"
-        data-bs-target="#PTTChat-contents-other"
+        :data-bs-target="`#${instanceIds.otherPaneId}`"
         role="tab"
-        aria-controls="PTTChat-contents-other"
+        :aria-controls="instanceIds.otherPaneId"
         aria-selected="false"
         @click="showTab"
       >
@@ -55,13 +55,13 @@
     </li>
     <li class="nav-item">
       <button
-        id="nav-item-PTT"
+        :id="instanceIds.pttNavId"
         class="nav-link ptt-text bg-transparent"
         type="button"
         data-bs-toggle="tab"
-        data-bs-target="#PTTChat-contents-PTT"
+        :data-bs-target="`#${instanceIds.pttPaneId}`"
         role="tab"
-        aria-controls="PTTChat-contents-PTT"
+        :aria-controls="instanceIds.pttPaneId"
         aria-selected="false"
         @click="showTab"
       >
@@ -70,13 +70,13 @@
     </li>
     <li class="nav-item">
       <button
-        id="nav-item-log"
+        :id="instanceIds.logNavId"
         class="nav-link ptt-text bg-transparent"
         type="button"
         data-bs-toggle="tab"
-        data-bs-target="#PTTChat-contents-log"
+        :data-bs-target="`#${instanceIds.logPaneId}`"
         role="tab"
-        aria-controls="PTTChat-contents-log"
+        :aria-controls="instanceIds.logPaneId"
         aria-selected="false"
         @click="showTab"
       >
@@ -85,12 +85,12 @@
     </li>
     <li class="nav-item">
       <button
-        id="nav-item-TimeSet"
+        :id="instanceIds.timeSetNavId"
         class="nav-link ptt-text bg-transparent d-none"
         type="button"
         data-bs-toggle="collapse"
-        data-bs-target="#PTTChat-Time"
-        aria-controls="PTTChat-Time"
+        :data-bs-target="`#${instanceIds.timeCollapseId}`"
+        :aria-controls="instanceIds.timeCollapseId"
         aria-expanded="false"
       >
         時間
@@ -102,7 +102,42 @@
 <script>
 import { showTab as showBootstrapTab } from 'src/bootstrap'
 
+function getDefaultInstanceIds () {
+  return {
+    navbarId: 'PTTChat-navbar',
+    chatNavId: 'nav-item-Chat',
+    connectNavId: 'nav-item-Connect',
+    otherNavId: 'nav-item-other',
+    pttNavId: 'nav-item-PTT',
+    logNavId: 'nav-item-log',
+    timeSetNavId: 'nav-item-TimeSet',
+    timeCollapseId: 'PTTChat-Time',
+    chatPaneId: 'PTTChat-contents-Chat',
+    connectPaneId: 'PTTChat-contents-Connect',
+    otherPaneId: 'PTTChat-contents-other',
+    pttPaneId: 'PTTChat-contents-PTT',
+    logPaneId: 'PTTChat-contents-log'
+  }
+}
+
 export default {
+  props: {
+    instanceId: {
+      type: String,
+      default: ''
+    },
+    shellMode: {
+      type: String,
+      default: 'classic'
+    },
+    instanceIds: {
+      type: Object,
+      default: getDefaultInstanceIds
+    }
+  },
+  data () {
+    return {}
+  },
   computed: {
     isGotoChat: function () {
       const go = this.gotoChat
