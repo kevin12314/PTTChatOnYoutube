@@ -82,10 +82,11 @@ export default {
         return
       }
       GM_setValue('PTTID', this.id)
+      this.cryptkey = GenerateCryptKey()
       const i = CryptoJS.AES.encrypt(this.id, this.cryptkey).toString()
       const p = CryptoJS.AES.encrypt(this.pw, this.cryptkey).toString()
       if (showAllLog)console.log(`this.cryptkey ${this.cryptkey}`)
-      this.msg.PostMessage('login', { id: i, pw: p, DeleteOtherConnect: this.getDeleteOtherConnect })
+      this.msg.PostMessage('login', { id: i, pw: p, cryptkey: this.cryptkey, DeleteOtherConnect: this.getDeleteOtherConnect })
     }
   }
 }

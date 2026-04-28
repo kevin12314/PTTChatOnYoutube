@@ -6,16 +6,22 @@ let TryLogin
  * @this {Ptt}
  */
 export function Login (data) {
-  // Read cryptkey fresh each time so it matches the key generated when the
-  // site-side ConnectLogin component was created (GenerateCryptKey writes it).
-  const cryptkey = GM_getValue('cryptkey', null)
+  const cryptkey = data.cryptkey || GM_getValue('cryptkey', null)
   if (!cryptkey) {
     this.msg.PostMessage('alert', { type: 0, msg: '加密錯誤' })
     this.endTask()
     return
   }
-  const decryptedId = CryptoJS.AES.decrypt(data.id, cryptkey).toString(CryptoJS.enc.Utf8)
-  const decryptedPassword = CryptoJS.AES.decrypt(data.pw, cryptkey).toString(CryptoJS.enc.Utf8)
+  let decryptedId = ''
+  let decryptedPassword = ''
+  try {
+    decryptedId = CryptoJS.AES.decrypt(data.id, cryptkey).toString(CryptoJS.enc.Utf8)
+    decryptedPassword = CryptoJS.AES.decrypt(data.pw, cryptkey).toString(CryptoJS.enc.Utf8)
+  } catch (e) {
+    this.msg.PostMessage('alert', { type: 0, msg: '加密錯誤' })
+    this.endTask()
+    return
+  }
   TryLogin = 2
   if (decryptedId !== '' && decryptedPassword !== '') {
     this.addTask(login, decryptedId, decryptedPassword, data.DeleteOtherConnect)
