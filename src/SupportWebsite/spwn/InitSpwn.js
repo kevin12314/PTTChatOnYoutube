@@ -142,6 +142,18 @@ export default function InitSpwn (messageposter, siteName) {
     return null
   }
 
+  function readDateField (value) {
+    if (!value || typeof value !== 'object') return null
+    if (value instanceof Date) return Number.isNaN(value.valueOf()) ? null : value
+    if (typeof value.seconds === 'number') {
+      return new Date(value.seconds * 1000 + Math.floor((value.nanoseconds || 0) / 1000000))
+    }
+    if (typeof value._seconds === 'number') {
+      return new Date(value._seconds * 1000 + Math.floor((value._nanoseconds || 0) / 1000000))
+    }
+    return null
+  }
+
   function findVideoInfo (eventVideoMap, videoId) {
     if (!eventVideoMap || typeof eventVideoMap !== 'object') return null
     if (videoId && eventVideoMap[videoId]) return eventVideoMap[videoId]
@@ -215,6 +227,64 @@ export default function InitSpwn (messageposter, siteName) {
     return null
   }
 
+  function readSpwnVideoMetaFromReactInternals () {
+    const stack = []
+    const root = document.getElementById('root')
+    pushReactInternals(root, stack)
+    pushReactInternals(document.querySelector('.theoplayer-container'), stack)
+    pushReactInternals(document.getElementById('aws-video-player'), stack)
+
+    const seen = new WeakSet()
+    const videoId = getCurrentVideoId()
+    const result = {
+      videoStartDate: null,
+      videoPublishDate: null
+    }
+    let scanned = 0
+
+    while (stack.length > 0 && scanned < 8000) {
+      const current = stack.pop()
+      if (!current || typeof current !== 'object' || seen.has(current)) continue
+      seen.add(current)
+      scanned++
+
+      const eventVideoMap = current.eventVideoMap || (current.props && current.props.eventVideoMap)
+      const videoInfo = findVideoInfo(eventVideoMap, videoId)
+      if (videoInfo) {
+        const chatStart = readDateField(videoInfo.chatDatetime)
+        if (chatStart) result.videoStartDate = chatStart
+
+        const publishStart = readDateField(videoInfo.startAt)
+        if (publishStart) result.videoPublishDate = publishStart
+      }
+
+      if (!result.videoStartDate) {
+        const eventStart = readDateField(current.eventStart || (current.state && current.state.eventStart) || current.memoizedState)
+        if (eventStart) result.videoStartDate = eventStart
+      }
+
+      if (result.videoStartDate && result.videoPublishDate) return result
+
+      ;[
+        'child',
+        'sibling',
+        'return',
+        'alternate',
+        'memoizedProps',
+        'pendingProps',
+        'props',
+        'memoizedState',
+        'state',
+        'stateNode'
+      ].forEach(key => {
+        const value = current[key]
+        if (value && typeof value === 'object') stack.push(value)
+      })
+    }
+
+    return result
+  }
+
   function detectByVisibleStatusText () {
     const statusElements = document.querySelectorAll('[class*="status"], [class*="Status"], [class*="badge"], [class*="Badge"], [class*="label"], [class*="Label"]')
     for (let index = 0; index < statusElements.length; index++) {
@@ -254,6 +324,17 @@ export default function InitSpwn (messageposter, siteName) {
     store.dispatch('isStream', isStream)
     store.dispatch('removeLog', 'videoType')
     store.dispatch('updateLog', { type: 'videoType', data: isStream ? '實況' : '影片' })
+
+    if (isStream) return
+
+    const videoMeta = readSpwnVideoMetaFromReactInternals()
+    const videoStartDate = videoMeta.videoStartDate || videoMeta.videoPublishDate
+    if (videoStartDate) {
+      store.dispatch('updateVideoStartDate', videoStartDate)
+      return
+    }
+
+    store.dispatch('removeLog', 'videoStartTime')
   }
 
   function CheckChatInstanced () {
