@@ -17,6 +17,11 @@ export default function ChangeLog () {
   function AddChangeLogInfo () {
     const changeLogInfo = {}
 
+    changeLogInfo.v_4_3 = new Info()
+    changeLogInfo.v_4_3.SPWN.push('新增 SPWN 支援，現在可以在 spwn.jp 的播放頁掛載 PTTChat。')
+    changeLogInfo.v_4_3.SPWN.push('新增 SPWN 直播與影片模式判斷，會依頁面狀態切換對應的推文同步模式。')
+    changeLogInfo.v_4_3.版本.push('改善登入初始化時序，避免 PTT iframe 尚未就緒時按下登入沒有反應。')
+
     changeLogInfo.v_4_2 = new Info()
     changeLogInfo.v_4_2.版本.push('新增 X/Twitter 貼文連結懸停預覽 MVP，支援 x.com 與 twitter.com 的 status 連結顯示貼文卡片。')
     changeLogInfo.v_4_2.版本.push('新增 verb.tw 圖床圖片預覽支援，現在可辨識 i.verb.tw 直連與 img.verb.tw/view 圖片頁連結。')
@@ -108,7 +113,7 @@ export default function ChangeLog () {
   const nowVerion = GM_info.script.version.split('.')
   GM_setValue('previousVersion', GM_info.script.version)
   if (nowVerion[0] <= previousVersion[0] && nowVerion[1] <= previousVersion[1]) return
-  class Info { constructor () { this.版本 = []; this.HoloDex = []; this.HoloTools = []; this.Twitch = []; this.Nijimado = []; this.Youtube = [] } }
+  class Info { constructor () { this.版本 = []; this.HoloDex = []; this.HoloTools = []; this.Twitch = []; this.Nijimado = []; this.Youtube = []; this.SPWN = [] } }
   const allChangeLogInfo = AddChangeLogInfo()
   const changeLogInfo = GetChangeLogInfo(new Info(), +previousVersion[0], +previousVersion[1] + 1)
   const encodedLogHTML = EncodeChangeLog(changeLogInfo)
