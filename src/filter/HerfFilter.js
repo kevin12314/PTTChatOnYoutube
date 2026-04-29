@@ -6,6 +6,7 @@ import insertGa from 'src/ga/index'
  * @param {Filter} filter
  */
 function InitializeScript (msg, filter) {
+  msg.pttReady = false
   filter.callback(msg, filter.siteName)
   console.log('PTTChatOnYT initialize finished at', filter.siteName)
 }
@@ -23,6 +24,8 @@ function InitializePtt (msg) {
   // -----
   console.log('PTTChatOnYT PTT part started at ' + window.location.href)
   InitPTT(msg)
+  console.log('[PTTChatOnYT][PTT] posting pttReady to host', { targetorigin: msg.targetorigin })
+  msg.PostMessage('pttReady', { href: window.location.href })
   console.log('PTTChatOnYT PTT part initialize finish.')
   // -----
 }

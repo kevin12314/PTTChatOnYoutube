@@ -12,6 +12,7 @@ import twitchfilter from './SupportWebsite/twitch/twitchfilter'
 import nijimadofilter from './SupportWebsite/nijimado/nijimadofilter'
 // import { lineTVfilter } from './SupportWebsite/lineTV/lineTVfilter'
 import hdfilter from './SupportWebsite/holodex/hdfilter'
+import spwnfilter from './SupportWebsite/spwn/spwnfilter'
 import './scss/index.scss'
 
 if (typeof window !== 'undefined') {
@@ -29,5 +30,6 @@ if (typeof window !== 'undefined') {
   filters.push(nijimadofilter)
   // filters.push(lineTVfilter);
   filters.push(hdfilter)
+  filters.push(spwnfilter)
   HerfFilter(msg, filters)
 })()

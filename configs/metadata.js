@@ -14,7 +14,8 @@ module.exports = {
     'https://lin.ee/*',
     'https://blank.org/*',
     'https://holodex.net/*',
-    'https://lolesports.com/*'
+    'https://lolesports.com/*',
+    'https://spwn.jp/*'
   ],
   grant: [
     'GM_xmlhttpRequest',
