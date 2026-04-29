@@ -238,7 +238,9 @@ export default function InitSpwn (messageposter, siteName) {
     const videoId = getCurrentVideoId()
     const result = {
       videoStartDate: null,
-      videoPublishDate: null
+      videoPublishDate: null,
+      videoEndDate: null,
+      videoDuration: null
     }
     let scanned = 0
 
@@ -256,6 +258,13 @@ export default function InitSpwn (messageposter, siteName) {
 
         const publishStart = readDateField(videoInfo.startAt)
         if (publishStart) result.videoPublishDate = publishStart
+
+        const videoEnd = readDateField(videoInfo.endAt)
+        if (videoEnd) result.videoEndDate = videoEnd
+
+        if (typeof videoInfo.duration === 'number' && Number.isFinite(videoInfo.duration) && videoInfo.duration > 0) {
+          result.videoDuration = videoInfo.duration
+        }
       }
 
       if (!result.videoStartDate) {
@@ -263,7 +272,7 @@ export default function InitSpwn (messageposter, siteName) {
         if (eventStart) result.videoStartDate = eventStart
       }
 
-      if (result.videoStartDate && result.videoPublishDate) return result
+      if (result.videoStartDate && result.videoPublishDate && result.videoEndDate && result.videoDuration) return result
 
       ;[
         'child',
@@ -331,10 +340,21 @@ export default function InitSpwn (messageposter, siteName) {
     const videoStartDate = videoMeta.videoStartDate || videoMeta.videoPublishDate
     if (videoStartDate) {
       store.dispatch('updateVideoStartDate', videoStartDate)
+    }
+
+    const videoEndDate = (
+      videoMeta.videoDuration && (videoStartDate || videoMeta.videoPublishDate)
+        ? new Date((videoStartDate || videoMeta.videoPublishDate).valueOf() + videoMeta.videoDuration * 1000)
+        : null
+    ) || videoMeta.videoEndDate
+    if (videoEndDate) {
+      store.dispatch('removeLog', 'videoEndTime')
+      store.dispatch('updateLog', { type: 'videoEndTime', data: videoEndDate.toLocaleDateString() + ' ' + videoEndDate.toLocaleTimeString() })
       return
     }
 
-    store.dispatch('removeLog', 'videoStartTime')
+    if (!videoStartDate) store.dispatch('removeLog', 'videoStartTime')
+    store.dispatch('removeLog', 'videoEndTime')
   }
 
   function CheckChatInstanced () {
