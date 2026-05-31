@@ -21,6 +21,7 @@ export default function ChangeLog () {
     changeLogInfo.v_4_3.SPWN.push('新增 SPWN 支援，現在可以在 spwn.jp 的播放頁掛載 PTTChat。')
     changeLogInfo.v_4_3.SPWN.push('新增 SPWN 直播與影片模式判斷，會依頁面狀態切換對應的推文同步模式。')
     changeLogInfo.v_4_3.版本.push('改善登入初始化時序，避免 PTT iframe 尚未就緒時按下登入沒有反應。')
+    changeLogInfo.v_4_3.版本.push('修正修改字體大小沒有作用的問題。')
 
     changeLogInfo.v_4_2 = new Info()
     changeLogInfo.v_4_2.版本.push('新增 X/Twitter 貼文連結懸停預覽 MVP，支援 x.com 與 twitter.com 的 status 連結顯示貼文卡片。')

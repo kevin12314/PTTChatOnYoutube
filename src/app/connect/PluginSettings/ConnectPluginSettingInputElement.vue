@@ -7,12 +7,13 @@
     <div class="col px-0">
       <input
         :id="settingName"
-        v-model.lazy="SettingValue"
+        v-model.number="SettingValue"
         class="form-control"
         type="text"
         :placeholder="defaultValue"
         autocomplete="off"
-        @keyup.13="$_PluginSetting_update"
+        @change="$_PluginSetting_update"
+        @keyup.enter="$_PluginSetting_update"
       >
     </div>
     <div
