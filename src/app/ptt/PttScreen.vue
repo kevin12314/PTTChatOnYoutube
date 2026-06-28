@@ -13,14 +13,14 @@
 <script>
 import PttScreenIframe from './PttScreenIframe.vue'
 export default {
+  components: {
+    'ptt-screen-iframe': PttScreenIframe
+  },
   props: {
     paneMainId: {
       type: String,
       default: 'PTTChat-contents-PTT-main'
     }
-  },
-  components: {
-    'ptt-screen-iframe': PttScreenIframe
   },
   computed: {
     ...Vuex.mapGetters([

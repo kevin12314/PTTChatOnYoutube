@@ -79,12 +79,6 @@ function getDefaultInstanceIds () {
 }
 
 export default {
-  props: {
-    instanceIds: {
-      type: Object,
-      default: getDefaultInstanceIds
-    }
-  },
   components: {
     'PTTApp-Chat': Chat,
     'PTTApp-Alert': ConnectAlert,
@@ -92,6 +86,12 @@ export default {
     'PTTApp-Other': Other,
     'PTTApp-PTT': PTTScreen,
     'PTTApp-Log': Log
+  },
+  props: {
+    instanceIds: {
+      type: Object,
+      default: getDefaultInstanceIds
+    }
   }
 }
 </script>

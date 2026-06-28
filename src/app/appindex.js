@@ -3,6 +3,7 @@ import PttAppButton from './PttAppButton.vue'
 import { createApp, h, markRaw } from 'vue'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import { store } from './store/store'
+import { shouldSyncPluginHeightFromContainer } from './pluginHeightSync'
 let appinscount = 0
 
 function createScopedId (baseId, instanceId) {
@@ -139,7 +140,11 @@ export default function InitApp (
     const themedark = 'pttbgc-2 pttc-2'
 
     const chatHeight = getChatContainerHeight()
-    if (shouldSyncPluginHeight && store.getters.getPluginHeight <= 0 && chatHeight > 0) {
+    if (shouldSyncPluginHeightFromContainer({
+      siteName,
+      currentPluginHeight: store.getters.getPluginHeight,
+      nextContainerHeight: chatHeight
+    })) {
       store.dispatch('setPluginHeight', chatHeight)
       if (showAllLog) console.log('PluginHeight auto initialized from chat container:', chatHeight)
     } else if (siteName === 'Holodex' && store.getters.getPluginHeight <= 1) {
@@ -211,10 +216,12 @@ export default function InitApp (
       },
       mounted () {
         const syncPluginHeight = () => {
-          if (!shouldSyncPluginHeight) return
-
           const nextHeight = getChatContainerHeight()
-          if (nextHeight > 0 && nextHeight !== this.$store.getters.getPluginHeight) {
+          if (shouldSyncPluginHeightFromContainer({
+            siteName,
+            currentPluginHeight: this.$store.getters.getPluginHeight,
+            nextContainerHeight: nextHeight
+          })) {
             this.$store.dispatch('setPluginHeight', nextHeight)
             if (showAllLog) console.log('PluginHeight synced from chat container:', nextHeight)
           }
