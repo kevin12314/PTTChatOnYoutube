@@ -17,6 +17,10 @@ export default function ChangeLog () {
   function AddChangeLogInfo () {
     const changeLogInfo = {}
 
+    changeLogInfo.v_4_4 = new Info()
+    changeLogInfo.v_4_4.Eplus.push('新增 Streaming+（live.eplus.jp）播放頁支援，可在 eplus 原生聊天區切換顯示 PTTChat。')
+    changeLogInfo.v_4_4.版本.push('版本更新至 4.4.0。')
+
     changeLogInfo.v_4_3 = new Info()
     changeLogInfo.v_4_3.SPWN.push('新增 SPWN 支援，現在可以在 spwn.jp 的播放頁掛載 PTTChat。')
     changeLogInfo.v_4_3.SPWN.push('新增 SPWN 直播與影片模式判斷，會依頁面狀態切換對應的推文同步模式。')
@@ -115,7 +119,7 @@ export default function ChangeLog () {
   const nowVerion = GM_info.script.version.split('.')
   GM_setValue('previousVersion', GM_info.script.version)
   if (nowVerion[0] <= previousVersion[0] && nowVerion[1] <= previousVersion[1]) return
-  class Info { constructor () { this.版本 = []; this.HoloDex = []; this.HoloTools = []; this.Twitch = []; this.Nijimado = []; this.Youtube = []; this.SPWN = [] } }
+  class Info { constructor () { this.版本 = []; this.HoloDex = []; this.HoloTools = []; this.Twitch = []; this.Nijimado = []; this.Youtube = []; this.SPWN = []; this.Eplus = [] } }
   const allChangeLogInfo = AddChangeLogInfo()
   const changeLogInfo = GetChangeLogInfo(new Info(), +previousVersion[0], +previousVersion[1] + 1)
   const encodedLogHTML = EncodeChangeLog(changeLogInfo)

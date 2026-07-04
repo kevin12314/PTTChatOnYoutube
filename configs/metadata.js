@@ -15,7 +15,8 @@ module.exports = {
     'https://blank.org/*',
     'https://holodex.net/*',
     'https://lolesports.com/*',
-    'https://spwn.jp/*'
+    'https://spwn.jp/*',
+    'https://live.eplus.jp/*'
   ],
   grant: [
     'GM_xmlhttpRequest',
