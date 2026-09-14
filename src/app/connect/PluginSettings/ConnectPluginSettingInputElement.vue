@@ -46,10 +46,14 @@ export default {
     perwebsite: { type: Boolean, required: false, default: false }
   },
   data () {
+    const customPluginSetting = this.$store.getters.customPluginSetting
+    const siteName = this.$store.getters.siteName
+    const suffix = customPluginSetting ? '-' + siteName : ''
+    const valueName = this.settingName + suffix
     return {
-      SettingValue: +GM_getValue(this.settingName, -1),
-      ValueMax: +GM_getValue('A-custom-' + this.settingName + 'Max', -1),
-      ValueMin: +GM_getValue('A-custom-' + this.settingName + 'Min', -1),
+      SettingValue: +GM_getValue(valueName, -1),
+      ValueMax: +GM_getValue('A-custom-' + this.settingName + 'Max' + suffix, -1),
+      ValueMin: +GM_getValue('A-custom-' + this.settingName + 'Min' + suffix, -1),
       BtnId: this.settingName + '-btn',
       Col: this.column
     }
@@ -69,7 +73,8 @@ export default {
     },
     ...Vuex.mapGetters([
       'customPluginSetting',
-      'siteName'
+      'siteName',
+      'getPluginHeight'
     ])
   },
   watch: {
@@ -79,6 +84,9 @@ export default {
       this.$_PluginSetting_MaxCheck()
       this.$_PluginSetting_MinCheck()
       this.$_PluginSetting_ValueCheck()
+    },
+    getPluginHeight (value) {
+      if (this.settingName === 'PluginHeight' && +value > 0) this.SettingValue = +value
     }
   },
   mounted () {
@@ -114,6 +122,10 @@ export default {
     },
     $_PluginSetting_ValueCheck: function () {
       if (showAllLog)console.log('ValueCheck', this.settingName, this.customPluginSetting)
+      if (this.settingName === 'PluginHeight' && this.siteName === 'Youtube' && this.customPluginSetting && +GM_getValue(this.settingName + '-' + this.siteName, -1) <= 0) {
+        this.SettingValue = null
+        return
+      }
       if (this.SettingValue < 0) this.SettingValue = this.defaultValue
       this.$_PluginSetting_update()
     }

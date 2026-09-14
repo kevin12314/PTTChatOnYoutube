@@ -105,13 +105,22 @@ import gaPush from 'src/ga/setvalue'
 export default {
   inject: ['msg', 'isStream'],
   data () {
+    const newDefaults = ['C_Chat,/本日直播單,Z20', 'C_Chat,/本日直播單']
+    let optionGroup = GM_getValue('AnySearchOption', [
+      ...newDefaults,
+      'C_Chat,/間直播單,Z20',
+      'C_Chat,/間直播單',
+      'vtuber,/彩虹直播'
+    ])
+    // Apply once so later manual removal or reordering is respected.
+    if (!GM_getValue('AnySearchDailyDefaultsAdded', false)) {
+      optionGroup = [...newDefaults, ...optionGroup.filter(item => !newDefaults.includes(item))]
+      GM_setValue('AnySearchOption', optionGroup)
+      GM_setValue('AnySearchDailyDefaultsAdded', true)
+    }
     return {
       description: '',
-      optionGroup: GM_getValue('AnySearchOption', [
-        'C_Chat,/間直播單,Z20',
-        'C_Chat,/間直播單',
-        'vtuber,/彩虹直播'
-      ]),
+      optionGroup,
       recentGroup: GM_getValue('AnySearchRecent', []),
       dropdownPreview: undefined,
       previewTitle: null,

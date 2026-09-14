@@ -5,13 +5,15 @@
  * @param {string} flags regular expression flags
  * @returns {RegExpExecArray|undefined} return result
  */
+import { readTerminalRows } from '../terminalAdapter.js'
+
 export function PttMatch (pattern, flags = undefined) {
   let result
   const reg = GetReg(pattern, flags)
   if (!this.state.screenUpdated) {
-    const screenElements = this.window.document.querySelectorAll("[data-type='bbsline']")
+    const screenElements = readTerminalRows(unsafeWindow, this.window.document)
     for (let i = 0; i < screenElements.length; i++) {
-      const txt = screenElements[i].textContent
+      const txt = screenElements[i]
       this.state.screen.push(txt)
       if (!result) result = reg.exec(txt)
     }

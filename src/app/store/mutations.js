@@ -233,7 +233,7 @@ export const mutations = {
 
   // dropdown
   [types.THEME] (state, theme) {
-    const ValueName = types.PLUGINPORTRAITHEIGHT + (state.customPluginSetting ? '-' + state.siteName : '')
+    const ValueName = types.THEME + (state.customPluginSetting ? '-' + state.siteName : '')
     GM_setValue(ValueName, theme)
     state.theme = theme
   },

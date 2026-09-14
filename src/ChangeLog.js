@@ -18,8 +18,11 @@ export default function ChangeLog () {
     const changeLogInfo = {}
 
     changeLogInfo.v_4_4 = new Info()
+    changeLogInfo.v_4_4.版本.push('4.4.2：支援新版 PTT 網頁終端機，修正登入失敗與「BBS 帳號登入」彈窗干擾登入流程的問題。')
+    changeLogInfo.v_4_4.版本.push('4.4.2：最近搜尋預設清單最前方新增「C_Chat,/本日直播單,Z20」與「C_Chat,/本日直播單」，既有清單會補上且不重複。')
+    changeLogInfo.v_4_4.版本.push('4.4.2：避免統計功能載入失敗時中斷搜尋等操作。')
     changeLogInfo.v_4_4.Eplus.push('新增 Streaming+（live.eplus.jp）播放頁支援，可在 eplus 原生聊天區切換顯示 PTTChat。')
-    changeLogInfo.v_4_4.版本.push('版本更新至 4.4.0。')
+    changeLogInfo.v_4_4.Youtube.push('修正Youtube啟用獨立設定時，套件長度有時會意外重設的問題。')
 
     changeLogInfo.v_4_3 = new Info()
     changeLogInfo.v_4_3.SPWN.push('新增 SPWN 支援，現在可以在 spwn.jp 的播放頁掛載 PTTChat。')

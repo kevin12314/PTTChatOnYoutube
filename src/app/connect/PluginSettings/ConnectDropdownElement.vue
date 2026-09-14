@@ -52,13 +52,26 @@ export default {
     }
   },
   computed: {
-    DisplayOption () { return this.optionGroup[this.SettingValue] }
+    DisplayOption () { return this.optionGroup[this.SettingValue] },
+    ...Vuex.mapGetters(['customPluginSetting', 'siteName'])
+  },
+  watch: {
+    customPluginSetting () {
+      this.$_ConnectDropdownElement_LoadValue()
+    },
+    siteName () {
+      this.$_ConnectDropdownElement_LoadValue()
+    }
   },
   mounted () {
     // console.log(this.description + " mounted", this.settingName, this.SettingValue, this.defaultValue);
-    this.$_ConnectDropdownElement_Select(this.SettingValue)
+    this.$_ConnectDropdownElement_LoadValue()
   },
   methods: {
+    $_ConnectDropdownElement_LoadValue () {
+      const valueName = this.settingName + (this.customPluginSetting ? '-' + this.siteName : '')
+      this.$_ConnectDropdownElement_Select(+GM_getValue(valueName, -1))
+    },
     $_ConnectDropdownElement_Select (newOption) {
       if (newOption > this.optionGroup.length - 1) {
         // console.log(this.description + " set to length - 1", this.optionGroup.length - 1);

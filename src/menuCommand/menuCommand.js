@@ -24,7 +24,7 @@ function onClick (callback) {
 }
 export default function menuCommand (siteName) {
   commandList.push(createCheckbox('enableExtention-' + siteName, `是否在${siteName}啟用(需重新整理)`, () => { }, true))
-  commandList.push(createCheckbox('customPluginSetting-' + siteName, `在${siteName}獨立使用套件設定`, () => { }))
+  commandList.push(createCheckbox('customPluginSetting-' + siteName, `在${siteName}獨立使用套件設定`, () => { }, siteName === 'Youtube'))
   registerAllCommand()
 }
 export function AddCommancCallback (index, callback) {

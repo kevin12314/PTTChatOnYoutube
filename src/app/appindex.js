@@ -3,7 +3,7 @@ import PttAppButton from './PttAppButton.vue'
 import { createApp, h, markRaw } from 'vue'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import { store } from './store/store'
-import { shouldSyncPluginHeightFromContainer } from './pluginHeightSync'
+import { shouldSyncPluginHeightFromContainer, getInitialPluginHeight } from './pluginHeightSync'
 let appinscount = 0
 
 function createScopedId (baseId, instanceId) {
@@ -42,7 +42,6 @@ export default function InitApp (
   return InitChatApp(chatContainer)
   function InitChatApp (cn) {
     const normalizedOptions = normalizeInitAppOptions(options)
-    const shouldSyncPluginHeight = siteName === 'Youtube'
     const rootIds = {
       mountId: createScopedId('PTTChatMount', normalizedOptions.instanceId),
       rootId: createScopedId('PTTChat', normalizedOptions.instanceId),
@@ -139,15 +138,23 @@ export default function InitApp (
     const themewhite = 'pttbgc-19 pttc-5'
     const themedark = 'pttbgc-2 pttc-2'
 
-    const chatHeight = getChatContainerHeight()
-    if (shouldSyncPluginHeightFromContainer({
-      siteName,
-      currentPluginHeight: store.getters.getPluginHeight,
-      nextContainerHeight: chatHeight
-    })) {
-      store.dispatch('setPluginHeight', chatHeight)
-      if (showAllLog) console.log('PluginHeight auto initialized from chat container:', chatHeight)
-    } else if (siteName === 'Holodex' && store.getters.getPluginHeight <= 1) {
+    store.dispatch('setSiteName', siteName)
+    store.dispatch('setCustomPluginSetting', GM_getValue('menuCommand-customPluginSetting-' + siteName, false))
+    let shouldInitializeYoutubeHeight = false
+    let youtubePluginHeightKey = ''
+    if (siteName === 'Youtube') {
+      const initialPluginHeight = getInitialPluginHeight({
+        customPluginSetting: store.getters.customPluginSetting,
+        sitePluginHeight: GM_getValue('PluginHeight-' + siteName, -1),
+        globalPluginHeight: GM_getValue('PluginHeight', -1)
+      })
+      youtubePluginHeightKey = 'PluginHeight' + (store.getters.customPluginSetting ? '-' + siteName : '')
+      shouldInitializeYoutubeHeight = initialPluginHeight <= 0
+      if (initialPluginHeight > 0) store.dispatch('setPluginHeight', initialPluginHeight)
+    } else if (store.getters.customPluginSetting) {
+      store.dispatch('setPluginHeight', GM_getValue('PluginHeight-' + siteName, -1))
+    }
+    if (siteName === 'Holodex' && store.getters.getPluginHeight <= 1) {
       store.dispatch('setPluginHeight', 400)
       if (showAllLog) console.log('PluginHeight restored for Holodex:', 400)
     }
@@ -175,8 +182,7 @@ export default function InitApp (
           playertime: null,
           exist: null,
           customPluginSettingListenerId: 0,
-          chatContainerResizeObserver: null,
-          syncPluginHeightHandler: null
+          youtubeHeightInitializationTimer: null
         }
       },
       computed: {
@@ -215,39 +221,56 @@ export default function InitApp (
         ])
       },
       mounted () {
-        const syncPluginHeight = () => {
-          const nextHeight = getChatContainerHeight()
-          if (shouldSyncPluginHeightFromContainer({
-            siteName,
-            currentPluginHeight: this.$store.getters.getPluginHeight,
-            nextContainerHeight: nextHeight
-          })) {
-            this.$store.dispatch('setPluginHeight', nextHeight)
-            if (showAllLog) console.log('PluginHeight synced from chat container:', nextHeight)
+        const startYoutubeHeightInitialization = () => {
+          const startedAt = Date.now()
+          let lastHeight = 0
+          let stableSampleCount = 0
+          const stopInitialization = () => {
+            if (this.youtubeHeightInitializationTimer === null) return
+            window.clearInterval(this.youtubeHeightInitializationTimer)
+            this.youtubeHeightInitializationTimer = null
           }
+          const sampleHeight = () => {
+            // A manual value entered while waiting always wins.
+            const savedHeight = +GM_getValue(youtubePluginHeightKey, -1)
+            if (savedHeight > 0) {
+              stopInitialization()
+              return
+            }
+            if (Date.now() - startedAt >= 30000) {
+              stopInitialization()
+              return
+            }
+            const chatFrame = document.querySelector('ytd-live-chat-frame iframe, #chat-container iframe')
+            const nextHeight = getChatContainerHeight()
+            if (!chatFrame || !chatFrame.src || nextHeight <= 0) {
+              lastHeight = 0
+              stableSampleCount = 0
+              return
+            }
+            if (nextHeight === lastHeight) stableSampleCount++; else {
+              lastHeight = nextHeight
+              stableSampleCount = 1
+            }
+            if (Date.now() - startedAt >= 2000 && stableSampleCount >= 8 && shouldSyncPluginHeightFromContainer({
+              siteName,
+              currentPluginHeight: savedHeight,
+              nextContainerHeight: nextHeight
+            })) {
+              this.$store.dispatch('setPluginHeight', nextHeight)
+              stopInitialization()
+            }
+          }
+          this.youtubeHeightInitializationTimer = window.setInterval(sampleHeight, 250)
+          sampleHeight()
         }
-
         this.$store.dispatch('updateLog', { type: 'videoType', data: isStreaming ? '實況' : '影片' })
         this.customPluginSettingListenerId = GM_addValueChangeListener('menuCommand-customPluginSetting-' + siteName,
           (name, oldValue, newValue, remote) => this.$store.dispatch('setCustomPluginSetting', newValue)
         )
-        this.$store.dispatch('setSiteName', siteName)
-        this.$store.dispatch('setCustomPluginSetting', GM_getValue('menuCommand-customPluginSetting-' + siteName, false))
         if (showAllLog)console.log('dispatch setCustomPluginSetting', GM_getValue('menuCommand-customPluginSetting-' + siteName, false))
         appinscount++
-        if (shouldSyncPluginHeight) {
-          this.syncPluginHeightHandler = syncPluginHeight
-          syncPluginHeight()
-          window.addEventListener('resize', this.syncPluginHeightHandler, true)
-          window.addEventListener('yt-player-updated', this.syncPluginHeightHandler, true)
-          window.addEventListener('yt-navigate-finish', this.syncPluginHeightHandler, true)
-        }
-        if (shouldSyncPluginHeight && typeof ResizeObserver === 'function' && cn && cn[0]) {
-          this.chatContainerResizeObserver = new ResizeObserver(() => {
-            syncPluginHeight()
-          })
-          this.chatContainerResizeObserver.observe(cn[0])
-        }
+        if (shouldInitializeYoutubeHeight) startYoutubeHeightInitialization()
         this.playertime = window.setInterval(() => {
           if (this.player) {
             this.$store.dispatch('updateVideoPlayedTime', this.player.currentTime)
@@ -322,16 +345,7 @@ export default function InitApp (
       },
       beforeUnmount () {
         GM_removeValueChangeListener(this.customPluginSettingListenerId)
-        if (this.chatContainerResizeObserver) {
-          this.chatContainerResizeObserver.disconnect()
-          this.chatContainerResizeObserver = null
-        }
-        if (this.syncPluginHeightHandler) {
-          window.removeEventListener('resize', this.syncPluginHeightHandler, true)
-          window.removeEventListener('yt-player-updated', this.syncPluginHeightHandler, true)
-          window.removeEventListener('yt-navigate-finish', this.syncPluginHeightHandler, true)
-          this.syncPluginHeightHandler = null
-        }
+        if (this.youtubeHeightInitializationTimer !== null) window.clearInterval(this.youtubeHeightInitializationTimer)
         clearInterval(this.playertime)
         clearInterval(this.exist)
       },

@@ -1,5 +1,6 @@
 import { Ptt } from './PttController/Ptt.js'
 import eventBind from './eventBind.js'
+import { bindTerminalUpdates } from './terminalAdapter.js'
 /**
  * @param {import('../MessagePoster').MessagePoster} messagePoster
  */
@@ -19,24 +20,10 @@ export function InitPTT (messagePoster) {
     }
     if (reportMode) console.log('===OnUpdate end===')
   }
-  /**
-   * @param obj
-   * @param key
-   * @param cb
-   */
-  function hook (obj, key, cb) {
-    const fn = obj[key].bind(obj)
-    obj[key] = function (...args) {
-      fn.apply(this, args)
-      cb.apply(this, args)
-    }
-  }
-  hook(unsafeWindow.console, 'log', t => {
-    if (t === 'view update') {
-      ptt.state.lastUpdateTime = Date.now()
-      ptt.state.serverfull = false
-      OnUpdate()
-    }
-  })
   eventBind.apply(ptt)
+  bindTerminalUpdates(unsafeWindow, () => {
+    ptt.state.lastUpdateTime = Date.now()
+    ptt.state.serverfull = false
+    OnUpdate()
+  })
 }
