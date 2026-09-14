@@ -3,6 +3,8 @@ import { collapseAction } from 'src/bootstrap'
 import ChangeLog from 'src/ChangeLog'
 import { ThemeCheck } from 'src/library'
 import gaUseExtensionEvent from 'src/ga/useExtensionEvent'
+import { createPttFrameUrl } from 'src/ptt/frameUrl'
+import { bindEmbeddedDrag } from './embeddedDrag'
 
 export default function InitHD (messageposter, siteName) {
   // Check Theme
@@ -50,6 +52,8 @@ export default function InitHD (messageposter, siteName) {
     let classicAppHandle = null
     let embeddedAppHandle = null
     let embeddedActiveCell = null
+    let embeddedDrag = null
+    let parkedCellId = null
     let embeddedFrameSyncTimer = null
     let embeddedYtStateFixHandler = null
     let nowWidth = 0
@@ -400,7 +404,18 @@ export default function InitHD (messageposter, siteName) {
       embeddedActiveCell = null
     }
 
-    function destroyEmbeddedApp () {
+    function destroyEmbeddedApp (preserveSession = false) {
+      if (preserveSession && embeddedAppHandle) {
+        parkedCellId = embeddedActiveCell?.[0]?.__vue__?.i ?? parkedCellId
+        // Keep the Vue instance (including chat history and polling) connected.
+        getOrCreateParkingLot().appendChild(embeddedAppHandle.mountElement)
+      } else {
+        parkedCellId = null
+      }
+      if (embeddedDrag) {
+        embeddedDrag.restore()
+        embeddedDrag = null
+      }
       const ids = getEmbeddedIds()
       if (ids) {
         $(`#${ids.navbarId} button[data-bs-toggle="tab"]`).off('click.pttchat-holodex-embedded')
@@ -417,7 +432,7 @@ export default function InitHD (messageposter, siteName) {
         layoutObserver.disconnect()
         layoutObserver = null
       }
-      if (embeddedAppHandle) {
+      if (embeddedAppHandle && !preserveSession) {
         embeddedAppHandle.unmount()
         embeddedAppHandle = null
       }
@@ -495,11 +510,14 @@ export default function InitHD (messageposter, siteName) {
       host[0].style.setProperty('width', '100%', 'important')
       host[0].style.setProperty('height', '100%', 'important')
       host[0].style.setProperty('overflow', 'hidden', 'important')
+      host[0].style.setProperty('user-select', 'text', 'important')
+      host[0].style.setProperty('-webkit-user-select', 'text', 'important')
       return host
     }
 
     function setEmbeddedCellEditMode (isEditing) {
       if (!embeddedActiveCell || embeddedActiveCell.length === 0) return
+      if (embeddedDrag) embeddedDrag.setEditing(isEditing)
 
       const sheet = embeddedActiveCell.find('.mv-cell.v-sheet').eq(0)
       const cellContent = sheet.children('.cell-content').eq(0)
@@ -566,12 +584,16 @@ export default function InitHD (messageposter, siteName) {
 
       observer = new MutationObserver((mutations) => {
         if (!embeddedActiveCell || embeddedActiveCell.length === 0 || !embeddedActiveCell[0].isConnected) {
-          destroyEmbeddedApp()
+          destroyEmbeddedApp(true)
+          return
+        }
+        if (embeddedAppHandle && !embeddedActiveCell[0].contains(embeddedAppHandle.mountElement)) {
+          destroyEmbeddedApp(true)
           return
         }
         const foreignFrame = embeddedActiveCell.find('.mv-frame.ma-auto').not('.pttchat-holodex-embedded-host')
         if (foreignFrame.length !== 0) {
-          destroyEmbeddedApp()
+          destroyEmbeddedApp(true)
         }
       })
       observer.observe(cell[0], { attributes: true, attributeOldValue: true, childList: true, subtree: true })
@@ -594,7 +616,7 @@ export default function InitHD (messageposter, siteName) {
             })
           })
           if (!embeddedActiveCell || embeddedActiveCell.length === 0 || !embeddedActiveCell[0].isConnected) {
-            destroyEmbeddedApp()
+            destroyEmbeddedApp(true)
           }
         })
         layoutObserver.observe(gridLayout[0], { childList: true, subtree: true })
@@ -608,16 +630,23 @@ export default function InitHD (messageposter, siteName) {
         return
       }
 
-      destroyEmbeddedApp()
+      destroyEmbeddedApp(true)
       const host = prepareEmbeddedCellHost(cell)
       if (!host) return
 
       embeddedActiveCell = cell
+      embeddedDrag = bindEmbeddedDrag(cell[0])
 
-      embeddedAppHandle = InitApp([host[0]], WhiteTheme, true, messageposter, siteName, {
-        instanceId: embeddedInstanceId,
-        shellMode: 'embedded'
-      })
+      if (embeddedAppHandle) {
+        host[0].appendChild(embeddedAppHandle.mountElement)
+        embeddedAppHandle.containerElement = host[0]
+      } else {
+        embeddedAppHandle = InitApp([host[0]], WhiteTheme, true, messageposter, siteName, {
+          instanceId: embeddedInstanceId,
+          shellMode: 'embedded'
+        })
+      }
+      parkedCellId = null
       ChangeLog()
       applyHolodexPanelTheme(embeddedAppHandle.ids.rootId)
       const finalizeEmbeddedMount = () => {
@@ -807,9 +836,11 @@ export default function InitHD (messageposter, siteName) {
       ensureClassicApp()
       if (reportMode) console.log('create PTTChat instance in holodex')
     }
+    if ($('#ptt-frame-parent').length === 0) messageposter.pttReady = false
     const pttFrame = $('#ptt-frame-parent').length !== 0
       ? $('#ptt-frame-parent').eq(0)
-      : $('<div id="ptt-frame-parent" style="position: absolute; z-index: 5000; pointer-events: auto;"><iframe id="PTTframe" src="//term.ptt.cc/?url=https://holodex.net" style="display:none;">你的瀏覽器不支援iframe</iframe></div>')
+      : $('<div id="ptt-frame-parent" style="position: absolute; z-index: 5000; pointer-events: auto;"><iframe id="PTTframe" style="display:none;">你的瀏覽器不支援iframe</iframe></div>')
+        .find('iframe').attr('src', createPttFrameUrl('https://holodex.net')).end()
     pttFrame.css({ 'z-index': '5000', 'pointer-events': 'auto' })
     if (pttFrame.parent().length === 0) {
       if (useEmbeddedMode) $('body').append(pttFrame)
@@ -830,7 +861,12 @@ export default function InitHD (messageposter, siteName) {
     if (!useEmbeddedMode) listenPttFrameBtn()
 
     let mainTimer = GM_getValue('PluginTypeHolodex', '1') === '0'
-      ? setInterval(appendPttEmbedBtn, 1000)
+      ? setInterval(() => {
+        appendPttEmbedBtn()
+        if (!embeddedAppHandle || embeddedActiveCell || parkedCellId === null) return
+        const replacement = $('.vue-grid-item').filter((index, cell) => cell.__vue__?.i === parkedCellId).eq(0)
+        if (replacement.length && replacement.find('.mv-frame.ma-auto').length === 0) mountEmbeddedAppToCell(replacement)
+      }, 1000)
       : undefined
     const mainPanel = document.getElementById('PTTMain')
     if (mainPanel) {
@@ -883,6 +919,7 @@ export default function InitHD (messageposter, siteName) {
       clearStyle('#PTTChat-contents', ['height', 'max-height', 'min-height'])
       if (PTTChatHandler[0]) PTTChatHandler[0].style.removeProperty('height')
       messageposter.targetWindow = null
+      messageposter.pttReady = false
       const parkingLot = getOrCreateParkingLot()
       if ($('#PTTChat').length !== 0) $('#PTTChat').appendTo(parkingLot).css('display', 'none')
       parkSharedPttFrame()

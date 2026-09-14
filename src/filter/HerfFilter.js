@@ -1,6 +1,7 @@
 import { InitPTT } from '../ptt/pttindex'
 import menuCommand from 'menuCommand/menuCommand'
 import insertGa from 'src/ga/index'
+import { readPttOwnerOrigin } from '../ptt/frameUrl'
 /**
  * @param {MessagePoster} msg
  * @param {Filter} filter
@@ -19,13 +20,11 @@ function throwstring (site) {
 function InitializePtt (msg) {
   // init msg
   msg.ownerorigin = 'https://term.ptt.cc'
-  msg.targetorigin = /\?url=(.+?)\/?$/.exec(window.location.href)[1] // \?url=(https\:\/\/|http\:\/\/)(.+)
+  msg.targetorigin = readPttOwnerOrigin(window.location.href)
   msg.targetWindow = top
   // -----
   console.log('PTTChatOnYT PTT part started at ' + window.location.href)
   InitPTT(msg)
-  console.log('[PTTChatOnYT][PTT] posting pttReady to host', { targetorigin: msg.targetorigin })
-  msg.PostMessage('pttReady', { href: window.location.href })
   console.log('PTTChatOnYT PTT part initialize finish.')
   // -----
 }

@@ -17,6 +17,8 @@
 </template>
 
 <script>
+import { createPttFrameUrl } from 'src/ptt/frameUrl'
+
 export default {
   inject: ['msg'],
   methods: {
@@ -27,6 +29,8 @@ export default {
         if (!pttFrame || !pttFrameParent) return
 
         const newPttFrame = pttFrame.cloneNode(true)
+        newPttFrame.src = createPttFrameUrl(this.msg.ownerorigin)
+        this.msg.pttReady = false
         pttFrame.remove()
         pttFrameParent.appendChild(newPttFrame)
         this.msg.targetWindow = newPttFrame.contentWindow

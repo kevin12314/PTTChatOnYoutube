@@ -18,6 +18,12 @@ export default function ChangeLog () {
     const changeLogInfo = {}
 
     changeLogInfo.v_4_4 = new Info()
+    changeLogInfo.v_4_4.版本.push('4.4.3：修正 PTT 頁面快取引用失效資源造成黑畫面的問題，重啟時重新取得終端機頁面，並在終端機啟動後才回報就緒。')
+    changeLogInfo.v_4_4.版本.push('4.4.3：修正推文輸入後無法按 Enter 送出的問題，並避免中文選字及長按 Enter 時誤送或重複送出。')
+    changeLogInfo.v_4_4.版本.push('4.4.3：聊天室容器沿用舊版的系統字型順序，推文、帳號與時間統一繼承容器字型。')
+    changeLogInfo.v_4_4.HoloDex.push('4.4.3：修正新版 PTT 顯示模式中，終端機已載入卻提示尚未完成初始化、導致無法登入的問題。')
+    changeLogInfo.v_4_4.HoloDex.push('4.4.3：一般模式可拖曳選取聊天室文字，只有進入「編輯版面」後才允許移動與縮放 PTT 格子。')
+    changeLogInfo.v_4_4.HoloDex.push('4.4.3：新增分割或替換格子時保留聊天室實例與推文記錄；重新按 P 可接回原本內容，避免聊天室被清空。')
     changeLogInfo.v_4_4.版本.push('4.4.2：支援新版 PTT 網頁終端機，修正登入失敗與「BBS 帳號登入」彈窗干擾登入流程的問題。')
     changeLogInfo.v_4_4.版本.push('4.4.2：最近搜尋預設清單最前方新增「C_Chat,/本日直播單,Z20」與「C_Chat,/本日直播單」，既有清單會補上且不重複。')
     changeLogInfo.v_4_4.版本.push('4.4.2：避免統計功能載入失敗時中斷搜尋等操作。')
@@ -121,10 +127,11 @@ export default function ChangeLog () {
   const previousVersion = GM_getValue('previousVersion', '2.9.0').split('.')
   const nowVerion = GM_info.script.version.split('.')
   GM_setValue('previousVersion', GM_info.script.version)
-  if (nowVerion[0] <= previousVersion[0] && nowVerion[1] <= previousVersion[1]) return
+  const changedPart = [0, 1, 2].find(index => +(nowVerion[index] || 0) !== +(previousVersion[index] || 0))
+  if (changedPart === undefined || +(nowVerion[changedPart] || 0) < +(previousVersion[changedPart] || 0)) return
   class Info { constructor () { this.版本 = []; this.HoloDex = []; this.HoloTools = []; this.Twitch = []; this.Nijimado = []; this.Youtube = []; this.SPWN = []; this.Eplus = [] } }
   const allChangeLogInfo = AddChangeLogInfo()
-  const changeLogInfo = GetChangeLogInfo(new Info(), +previousVersion[0], +previousVersion[1] + 1)
+  const changeLogInfo = GetChangeLogInfo(new Info(), +previousVersion[0], +previousVersion[1] + (changedPart === 2 ? 0 : 1))
   const encodedLogHTML = EncodeChangeLog(changeLogInfo)
   const changeLogHTML = encodedLogHTML.trim().length > 0
     ? encodedLogHTML

@@ -9,35 +9,39 @@
 </template>
 
 <script>
+import { createPttFrameUrl } from '../../ptt/frameUrl'
+
 export default {
   inject: ['msg'],
   data () {
     return {
-      src: '//term.ptt.cc/?url=' + this.msg.ownerorigin,
-      removePttFrame: false
+      src: createPttFrameUrl(this.msg.ownerorigin),
+      removePttFrame: this.msg.ownerorigin === 'https://holodex.net',
+      targetWindowTimer: null
     }
   },
   mounted () {
-    this.msg.pttReady = false
     this.debugPttFrame('mounted', { src: this.src, ownerorigin: this.msg.ownerorigin })
     if (this.msg.ownerorigin === 'https://holodex.net') {
-      this.removePttFrame = true
       this.$nextTick(function () {
-        const t = setInterval(() => {
+        this.targetWindowTimer = setInterval(() => {
           if (document.getElementById('PTTframe') !== null) {
             this.msg.targetWindow = document.getElementById('PTTframe').contentWindow
             this.debugPttFrame('targetWindow assigned for holodex', { hasTargetWindow: !!this.msg.targetWindow })
-            clearInterval(t)
+            clearInterval(this.targetWindowTimer)
+            this.targetWindowTimer = null
           }
         }, 200)
       })
     } else {
+      this.msg.pttReady = false
       this.msg.targetWindow = this.$el.contentWindow
       this.debugPttFrame('targetWindow assigned', { hasTargetWindow: !!this.msg.targetWindow })
     }
     window.addEventListener('beforeunload', this.removeiframe)
   },
   beforeUnmount () {
+    clearInterval(this.targetWindowTimer)
     window.removeEventListener('beforeunload', this.removeiframe)
   },
   methods: {

@@ -5,14 +5,14 @@
       <div class="col">
         <input
           id="setnewcomment"
-          v-model.lazy="commenttext"
+          v-model="commenttext"
           class="form-control"
           type="text"
           style="font-size:14px"
           :placeholder="placeholder"
           autocomplete="off"
           :disabled="!getEnableSetNewComment"
-          @keyup.13="$_ChatSetNewComment_setComment"
+          @keydown.enter="onCommentEnter"
         >
       </div>
       <div class="col-2 px-0">
@@ -64,6 +64,13 @@ export default {
     this.msg.commentedText = data => this.$_ChatSetNewComment_removeCommentedText(data.commentedText)
   },
   methods: {
+    onCommentEnter (event) {
+      // Enter confirms an IME candidate before it can submit a comment.
+      if (event.isComposing || event.keyCode === 229 || event.repeat) return
+      event.preventDefault()
+      event.stopPropagation()
+      this.$_ChatSetNewComment_setComment()
+    },
     $_ChatSetNewComment_setComment: function () {
       const result = /.+/.exec(this.commenttext)
       if (!result) this.$store.dispatch('Alert', { type: 0, msg: '請輸入文字。' })

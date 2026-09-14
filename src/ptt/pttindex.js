@@ -21,7 +21,12 @@ export function InitPTT (messagePoster) {
     if (reportMode) console.log('===OnUpdate end===')
   }
   eventBind.apply(ptt)
+  let ready = false
   bindTerminalUpdates(unsafeWindow, () => {
+    if (!ready) {
+      ready = true
+      messagePoster.PostMessage('pttReady', { href: window.location.href })
+    }
     ptt.state.lastUpdateTime = Date.now()
     ptt.state.serverfull = false
     OnUpdate()
