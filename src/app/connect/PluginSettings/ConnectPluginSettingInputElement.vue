@@ -42,6 +42,7 @@ export default {
     max: { type: Number, required: true },
     min: { type: Number, required: true },
     confirmBtn: { type: Boolean, required: false, default: false },
+    fixedColumns: { type: Boolean, default: false },
     column: { type: Number, required: false, default: 12 },
     perwebsite: { type: Boolean, required: false, default: false }
   },
@@ -61,13 +62,13 @@ export default {
   computed: {
     Classes: function () {
       const classes = ['row', 'px-0', 'mx-0', 'my-2']
-      if (this.nowPluginWidth < 399) { classes.push('col-' + Math.min(this.Col * 2, 12)) } else classes.push('col-' + Math.min(this.Col, 12))
+      if (!this.fixedColumns && this.nowPluginWidth < 399) { classes.push('col-' + Math.min(this.Col * 2, 12)) } else classes.push('col-' + Math.min(this.Col, 12))
       return classes.join(' ')
     },
     LabelClasses: function () {
       const col = parseInt(12 / this.Col) * 3
       const classes = ['col-form-label']
-      if (this.nowPluginWidth < 399) classes.push('col-12')
+      if (!this.fixedColumns && this.nowPluginWidth < 399) classes.push('col-12')
       else classes.push('col-' + col)
       return classes.join(' ')
     },

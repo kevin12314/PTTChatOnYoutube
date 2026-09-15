@@ -14,7 +14,6 @@ export default function InitHD (messageposter, siteName) {
   let observer
   let layoutObserver
   let classicSidebarResizeHandler
-  let classicHeaderFill
   let classicThemeObserver
   let activeHolodexCleanup
   let mountEmbeddedAppToCell = () => {}
@@ -32,7 +31,9 @@ export default function InitHD (messageposter, siteName) {
 
     const embeddedInstanceId = 'holodex-embedded'
     const useEmbeddedMode = GM_getValue('PluginTypeHolodex', '1') === '0'
-    const pluginWidth = parseInt(GM_getValue('PluginWidth', 350), 10)
+    const widthSettingKey = GM_getValue('menuCommand-customPluginSetting-Holodex', false) ? 'PluginWidth-Holodex' : 'PluginWidth'
+    let pluginWidth = parseInt(GM_getValue(widthSettingKey, 350), 10)
+    if (!Number.isFinite(pluginWidth) || pluginWidth <= 0) pluginWidth = 350
     const liveControls = $('.justify-end.d-flex.mv-toolbar-btn.align-center.no-btn-text')
     const fakeparent = $('#fakeparent').length !== 0
       ? $('#fakeparent').eq(0)
@@ -57,6 +58,17 @@ export default function InitHD (messageposter, siteName) {
     let embeddedFrameSyncTimer = null
     let embeddedYtStateFixHandler = null
     let nowWidth = 0
+    const onPluginWidthChange = (event) => {
+      if (GM_getValue('PluginTypeHolodex', '1') !== '1') return
+      const width = Number(event.detail)
+      if (!Number.isFinite(width) || width <= 0) return
+      pluginWidth = width
+      if (GM_getValue('PluginTypeHolodex', '1') === '1' && nowWidth > 0) {
+        nowWidth = width
+        applyClassicSidebarLayout(nowWidth)
+      }
+    }
+    window.addEventListener('pttchat:holodex-width', onPluginWidthChange)
     liveControls.prepend(iconPTT, iconSwitch)
 
     function getOrCreateParkingLot () {
@@ -82,11 +94,6 @@ export default function InitHD (messageposter, siteName) {
     function getToolbarBackground () {
       const toolbar = getToolbarElement()
       return toolbar ? getComputedStyle(toolbar).backgroundColor : '#1f1f1f'
-    }
-
-    function getToolbarBorderColor () {
-      const toolbar = getToolbarElement()
-      return toolbar ? getComputedStyle(toolbar).borderBottomColor : 'transparent'
     }
 
     function getToolbarForeground () {
@@ -129,44 +136,12 @@ export default function InitHD (messageposter, siteName) {
       setImportantStyle(panelRoot, '--bs-dark-bg-subtle', panelBackground)
     }
 
-    function getOrCreateClassicHeaderFill () {
-      if (!classicHeaderFill || !classicHeaderFill.parentNode) {
-        classicHeaderFill = document.createElement('div')
-        classicHeaderFill.id = 'pttchat-classic-header-fill'
-        document.body.appendChild(classicHeaderFill)
-      }
-      return classicHeaderFill
-    }
-
-    function applyClassicHeaderFill (width) {
-      const headerFill = getOrCreateClassicHeaderFill()
-      const toolbarHeight = getToolbarHeight()
-      if (width > 0) {
-        Object.assign(headerFill.style, {
-          position: 'fixed',
-          top: '0px',
-          right: '0px',
-          width: `${width}px`,
-          height: `${toolbarHeight}px`,
-          background: getToolbarBackground(),
-          borderBottom: `1px solid ${getToolbarBorderColor()}`,
-          boxSizing: 'border-box',
-          zIndex: '2',
-          pointerEvents: 'none',
-          display: 'block'
-        })
-      } else {
-        headerFill.style.display = 'none'
-      }
-    }
-
     function syncClassicToolbarTheme () {
       const iconColor = getToolbarForeground()
       iconSwitch.css('color', iconColor)
       iconSwitch.find('svg').attr('fill', iconColor)
       applyHolodexPanelTheme()
       if (embeddedAppHandle) applyHolodexPanelTheme(embeddedAppHandle.ids.rootId)
-      applyClassicHeaderFill(nowWidth)
       // sync embedded cell button theme
       const themeClass = getHolodexThemeClass()
       const otherThemeClass = themeClass === 'theme--dark' ? 'theme--light' : 'theme--dark'
@@ -185,17 +160,19 @@ export default function InitHD (messageposter, siteName) {
     }
 
     function applyClassicSidebarGap (width) {
-      const mainWrap = getMainWrap()
-      if (!mainWrap) return
+      const grid = defaultVideo[0]
+      if (!grid) return
 
+      // Keep the toolbar's ancestor full width and leave the grid in place.
+      // Reparenting the grid can disrupt the embedded players' lifecycle.
       if (width > 0) {
-        mainWrap.style.width = `calc(100% - ${width}px)`
-        mainWrap.style.maxWidth = `calc(100% - ${width}px)`
-        mainWrap.style.marginRight = `${width}px`
+        grid.style.width = `calc(100% - ${width}px)`
+        grid.style.maxWidth = `calc(100% - ${width}px)`
+        grid.style.marginRight = `${width}px`
       } else {
-        mainWrap.style.width = ''
-        mainWrap.style.maxWidth = ''
-        mainWrap.style.marginRight = ''
+        grid.style.width = ''
+        grid.style.maxWidth = ''
+        grid.style.marginRight = ''
       }
     }
 
@@ -674,7 +651,6 @@ export default function InitHD (messageposter, siteName) {
         'pointer-events': width > 0 ? 'auto' : 'none'
       })
       applyClassicSidebarGap(width)
-      applyClassicHeaderFill(width)
       syncClassicPanelHeights()
     }
 
@@ -751,7 +727,6 @@ export default function InitHD (messageposter, siteName) {
         flex: '0 0 0px'
       })
       applyClassicSidebarGap(0)
-      applyClassicHeaderFill(0)
       if (PTTChatHandler.parent()[0] !== fakeparent[0]) fakeparent.append(PTTChatHandler)
       setupYtStateFixHandler()
     }
@@ -791,6 +766,7 @@ export default function InitHD (messageposter, siteName) {
           $('[name="ptt-boot-btn"]').remove()
           iconPTT.css('display', 'block')
           GM_setValue('PluginTypeHolodex', '1')
+          window.dispatchEvent(new CustomEvent('pttchat:holodex-mode'))
           nowWidth = 0
           ensureClassicLayout()
         } else {
@@ -798,6 +774,7 @@ export default function InitHD (messageposter, siteName) {
           nowWidth = 0
           applyClassicSidebarLayout(nowWidth)
           GM_setValue('PluginTypeHolodex', '0')
+          window.dispatchEvent(new CustomEvent('pttchat:holodex-mode'))
           ensureEmbeddedLayout()
           mainTimer = window.setInterval(() => {
             console.log(new Date())
@@ -894,6 +871,7 @@ export default function InitHD (messageposter, siteName) {
       clearInterval(mainTimer)
       mainTimer = undefined
       teardownYtStateFixHandler()
+      window.removeEventListener('pttchat:holodex-width', onPluginWidthChange)
       destroyEmbeddedApp()
       destroyClassicApp()
       if (classicThemeObserver) {
@@ -905,7 +883,6 @@ export default function InitHD (messageposter, siteName) {
         classicSidebarResizeHandler = null
       }
       applyClassicSidebarGap(0)
-      applyClassicHeaderFill(0)
       const mainPanel = document.getElementById('PTTMain')
       if (mainPanel) collapseAction(mainPanel, 'hide')
       const clearStyle = (selector, properties) => {

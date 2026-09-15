@@ -170,7 +170,7 @@ export default function InitApp (
         return {
           msg: markRaw(this.rootmsg),
           isStream: isStreaming,
-          nowPluginWidth: GM_getValue('PluginWidth', 400),
+          nowPluginWidth: GM_getValue('PluginWidth' + (store.getters.customPluginSetting ? '-' + siteName : ''), siteName === 'Holodex' ? 350 : 400),
           pttInstanceId: normalizedOptions.instanceId
         }
       },

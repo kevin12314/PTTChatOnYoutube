@@ -13,6 +13,17 @@
         :max="850"
         :min="180"
         :column="6"
+        fixed-columns
+      />
+      <connect-plugin-setting-input-element
+        v-if="siteName === 'Holodex' && holodexClassicMode"
+        :setting-name="'PluginWidth'"
+        :description="'套件寬度(px)'"
+        :default-value="350"
+        :max="800"
+        :min="290"
+        :column="6"
+        fixed-columns
       />
       <connect-plugin-setting-input-element
         :setting-name="'CommentInterval'"
@@ -21,9 +32,8 @@
         :max="360"
         :min="2.5"
         :column="6"
+        fixed-columns
       />
-    </div>
-    <div class="row px-2">
       <connect-plugin-setting-input-element
         :setting-name="'Fontsize'"
         :description="'字體尺寸(px)'"
@@ -31,6 +41,7 @@
         :max="30"
         :min="9"
         :column="6"
+        fixed-columns
       />
       <connect-plugin-setting-input-element
         :setting-name="'ChatSpace'"
@@ -39,23 +50,8 @@
         :max="5"
         :min="0"
         :column="6"
+        fixed-columns
       />
-    </div>
-    <div
-      v-if="siteName === 'Holotools' ||siteName === 'niji-mado'"
-      class="row px-2"
-    >
-      <connect-plugin-setting-input-element
-        :setting-name="'PluginWidth'"
-        :description="'套件寬度'"
-        :default-value="400"
-        :max="800"
-        :min="290"
-        :column="12"
-      />
-      <p class="my-0 px-2">
-        僅Holotools、niji-mado可用，需重新整理
-      </p>
     </div>
     <div
       v-if="siteName === 'Holotools'"
@@ -97,8 +93,23 @@ export default {
     'connect-other-setting': ConnectOtherSetting,
     'connect-new-version': ConnectNewVersion
   },
+  data () {
+    return { holodexClassicMode: GM_getValue('PluginTypeHolodex', '1') === '1' }
+  },
   computed: {
     ...Vuex.mapGetters(['siteName'])
+  },
+  mounted () {
+    window.addEventListener('pttchat:holodex-mode', this.syncHolodexMode)
+    this.syncHolodexMode()
+  },
+  beforeUnmount () {
+    window.removeEventListener('pttchat:holodex-mode', this.syncHolodexMode)
+  },
+  methods: {
+    syncHolodexMode () {
+      this.holodexClassicMode = GM_getValue('PluginTypeHolodex', '1') === '1'
+    }
   }
 }
 </script>

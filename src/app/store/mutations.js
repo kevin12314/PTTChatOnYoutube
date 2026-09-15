@@ -201,9 +201,15 @@ export const mutations = {
     state.chatSpace = space
   },
   [types.PLUGINWIDTH] (state, width) {
+    if (state.siteName === 'Holodex' && GM_getValue('PluginTypeHolodex', '1') !== '1') return
+    width = Number(width)
+    if (!Number.isFinite(width) || width <= 0) return
     const ValueName = types.PLUGINWIDTH + (state.customPluginSetting ? '-' + state.siteName : '')
     GM_setValue(ValueName, width)
     state.pluginWidth = width
+    if (state.siteName === 'Holodex') {
+      window.dispatchEvent(new CustomEvent('pttchat:holodex-width', { detail: width }))
+    }
   },
   [types.PLUGINPORTRAITHEIGHT] (state, portraitHeight) {
     const ValueName = types.PLUGINPORTRAITHEIGHT + (state.customPluginSetting ? '-' + state.siteName : '')
