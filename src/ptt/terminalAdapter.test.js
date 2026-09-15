@@ -128,3 +128,32 @@ const pasteDocument = {
 pasteTerminalText(pasteDocument, 'test\n')
 assert.strictEqual(inputPastes, 1)
 assert.strictEqual(documentPastes, 1, 'Paste must reach the document listener')
+
+// Userscript window and page window are different objects. Automated reads
+// must use the page's paste pipeline without triggering the DOM focus path.
+const pasted = []
+const composer = {}
+let activeElement = composer
+const terminalPage = {
+  app: {
+    dispatchPaste (text) {
+      assert.strictEqual(this, terminalPage.app)
+      pasted.push(text)
+    }
+  }
+}
+const hostDocument = {
+  defaultView: {},
+  querySelector () {
+    return { dispatchEvent () { activeElement = 'terminal' } }
+  }
+}
+for (const text of ['qr', '72.\n', '%', '中文測試\n']) {
+  pasteTerminalText(hostDocument, text, terminalPage)
+  assert.strictEqual(activeElement, composer, 'Background commands must not focus the iframe')
+}
+assert.deepStrictEqual(pasted, ['qr', '72.\n', '%', '中文測試\n'])
+// A consumed/cancelled paste must not be retried through the DOM path.
+terminalPage.app.dispatchPaste = () => false
+pasteTerminalText(hostDocument, 'qr', terminalPage)
+assert.strictEqual(activeElement, composer)

@@ -51,7 +51,7 @@ function login (id, pw, DeleteOtherConnect) {
       this.insertText(id + '\n' + pw + '\n')
       this.command.set(checkLogin)
     } else {
-      this.command.set(login, id, pw)
+      this.command.set(login, id, pw, DeleteOtherConnect)
     }
   } else {
     this.msg.PostMessage('alert', { type: 0, msg: '已經登入，請勿重複登入。' })

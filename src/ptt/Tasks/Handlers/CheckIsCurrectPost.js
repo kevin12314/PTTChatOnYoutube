@@ -5,6 +5,12 @@ import { FrameState } from 'PttController/PttState.js'
  * @this {Ptt}
  */
 function gotoPost () {
+  // An AID already identifies the exact entry, including sticky posts.
+  // Sqr can move from a sticky entry to its non-sticky, non-commentable entry.
+  if (/^#[A-Za-z0-9_-]{8}$/.test(this.postData.key)) {
+    this.insertText(this.postData.key + '\nr')
+    return
+  }
   this.insertText('NPP' + this.postData.key + '\nSqr')
 }
 

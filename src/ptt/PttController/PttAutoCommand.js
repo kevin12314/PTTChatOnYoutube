@@ -17,6 +17,9 @@ export function PttAutoCommand () {
         input: '',
         callback: () => {
           const inserttxt = this.state.deleteOtherConnection ? 'y\n' : 'n\n'
+          if (!this.state.deleteOtherConnection) {
+            this.msg.PostMessage('alert', { type: 1, msg: '已選擇保留其他 PTT 連線；若隨後斷線，可能已達同帳號連線上限。請登出其他連線，或勾選「刪除其他重複連線」後再登入。' })
+          }
           this.insertText(inserttxt)
           return ThisFrame.skip
         }
@@ -26,7 +29,7 @@ export function PttAutoCommand () {
         reg: /按任意鍵繼續/,
         input: '',
         callback: () => {
-          const reg = /(◆ 此文章無內容|找不到這個文章代碼\(AID\)，可能是文章已消失，或是你找錯看板了|這一篇文章值|◆ 本文已過長, 禁止快速連續推文|◆ 對不起，您的文章或推文間隔太近囉！|《.+》看板設定|◆ 抱歉, 禁止推薦)/
+          const reg = /(◆ 此文章無內容|找不到這個文章代碼\(AID\)，可能是文章已消失，或是你找錯看板了|這一篇文章值|◆ 本文已過長, 禁止快速連續推文|◆ 對不起，您的文章或推文間隔太近囉！|《.+》看板設定|◆ 抱歉[,，] *禁止推薦)/
           const result = this.match(reg)
           if (result) {
             return ThisFrame.notSkip

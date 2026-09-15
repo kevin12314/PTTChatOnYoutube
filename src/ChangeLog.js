@@ -18,6 +18,10 @@ export default function ChangeLog () {
     const changeLogInfo = {}
 
     changeLogInfo.v_4_4 = new Info()
+    changeLogInfo.v_4_4.版本.push('4.4.5：修正 HoloDex 定時讀取推文時，PTT 終端機搶走推文輸入框焦點，導致輸入中斷的問題。')
+    changeLogInfo.v_4_4.版本.push('4.4.5：修正等待登入畫面時遺失「刪除其他重複連線」設定，並在選擇保留其他連線時提示連線上限可能導致登入斷線。')
+    changeLogInfo.v_4_4.版本.push('4.4.5：修正以 AID 開啟置底文章後，多餘的同標題搜尋切換到禁止推薦的文章項目，造成手動可推文但插件無法推文的問題。')
+    changeLogInfo.v_4_4.版本.push('4.4.5：推文遭 PTT 拒絕並顯示「禁止推薦」時，顯示拒絕原因並退出提示畫面，避免卡住後誤報「Ptt無回應」，保留未送出的文字。')
     changeLogInfo.v_4_4.版本.push('4.4.4：修正新版 PTT 終端機未收到登入指令，導致持續顯示「指令執行中」並出現「Ptt無回應」的問題。')
     changeLogInfo.v_4_4.版本.push('4.4.4：支援新版 PTT 輔助登入模組名稱，避免登入彈窗干擾插件登入，並保留舊版終端機相容性。')
     changeLogInfo.v_4_4.版本.push('4.4.3：修正 PTT 頁面快取引用失效資源造成黑畫面的問題，重啟時重新取得終端機頁面，並在終端機啟動後才回報就緒。')

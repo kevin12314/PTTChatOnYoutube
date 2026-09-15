@@ -71,7 +71,14 @@ export function flushPendingTerminalUpdate (buf) {
   }
 }
 
-export function pasteTerminalText (currentDocument, str) {
+export function pasteTerminalText (currentDocument, str, pageWindow = currentDocument.defaultView) {
+  const app = pageWindow.app
+  if (app && typeof app.dispatchPaste === 'function') {
+    // DOM paste focuses the terminal, stealing focus from the host composer.
+    // Keep the normal paste transformations without its UI focus side effect.
+    app.dispatchPaste(str)
+    return
+  }
   const input = currentDocument.querySelector('#t')
   // New terminals listen on document; legacy terminals listen on the input.
   const event = new currentDocument.defaultView.CustomEvent('paste', { bubbles: true, cancelable: true })

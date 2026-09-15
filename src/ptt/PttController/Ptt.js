@@ -109,7 +109,7 @@ export function Ptt (msg) {
   }
   this.insertText = str => {
     if (reportMode) console.log(`insertText: "${str}"`)
-    pasteTerminalText(this.window.document, str)
+    pasteTerminalText(this.window.document, str, unsafeWindow)
     this.state.isInsertedText = str
   }
   Ptt.cache = this
