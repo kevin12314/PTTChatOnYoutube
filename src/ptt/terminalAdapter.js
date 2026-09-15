@@ -23,7 +23,8 @@ export function bindTerminalUpdates (pageWindow, onUpdate) {
     const app = pageWindow.app
     if (!app || !app.buf || typeof app.buf.on !== 'function') return false
     // Only disable the terminal's competing login UI for this embedded session.
-    const autoLogin = typeof app.getPlugin === 'function' && app.getPlugin('auto_login')
+    const autoLogin = typeof app.getPlugin === 'function' &&
+      (app.getPlugin('login_assist') || app.getPlugin('auto_login'))
     if (autoLogin) {
       autoLogin.hide()
       autoLogin.setEnabled(false, false)
@@ -68,4 +69,12 @@ export function flushPendingTerminalUpdate (buf) {
   if (!buf.inSyncUpdate && (buf.changed || buf.posChanged) && typeof buf.notify === 'function') {
     buf.notify()
   }
+}
+
+export function pasteTerminalText (currentDocument, str) {
+  const input = currentDocument.querySelector('#t')
+  // New terminals listen on document; legacy terminals listen on the input.
+  const event = new currentDocument.defaultView.CustomEvent('paste', { bubbles: true, cancelable: true })
+  event.clipboardData = { getData: () => str }
+  input.dispatchEvent(event)
 }

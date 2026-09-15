@@ -18,6 +18,8 @@ export default function ChangeLog () {
     const changeLogInfo = {}
 
     changeLogInfo.v_4_4 = new Info()
+    changeLogInfo.v_4_4.版本.push('4.4.4：修正新版 PTT 終端機未收到登入指令，導致持續顯示「指令執行中」並出現「Ptt無回應」的問題。')
+    changeLogInfo.v_4_4.版本.push('4.4.4：支援新版 PTT 輔助登入模組名稱，避免登入彈窗干擾插件登入，並保留舊版終端機相容性。')
     changeLogInfo.v_4_4.版本.push('4.4.3：修正 PTT 頁面快取引用失效資源造成黑畫面的問題，重啟時重新取得終端機頁面，並在終端機啟動後才回報就緒。')
     changeLogInfo.v_4_4.版本.push('4.4.3：修正推文輸入後無法按 Enter 送出的問題，並避免中文選字及長按 Enter 時誤送或重複送出。')
     changeLogInfo.v_4_4.版本.push('4.4.3：聊天室容器沿用舊版的系統字型順序，推文、帳號與時間統一繼承容器字型。')

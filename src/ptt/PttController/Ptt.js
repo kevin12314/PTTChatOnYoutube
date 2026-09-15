@@ -8,6 +8,7 @@ import { PttCommand } from './PttCommand.js'
 import { PttRandomInsert } from './PttRandomInsert.js'
 import PostData from '../MessagePosterData/PostData.js'
 import RecieveData from '../MessagePosterData/RecieveData.js'
+import { pasteTerminalText } from '../terminalAdapter.js'
 /**
  * @typedef {import("../../MessagePoster").MessagePoster} MessagePoster
  * @param {MessagePoster} msg message poster
@@ -107,11 +108,8 @@ export function Ptt (msg) {
     this.state.screen = []
   }
   this.insertText = str => {
-    const t = this.window.document.querySelector('#t')
-    const e = new CustomEvent('paste')
     if (reportMode) console.log(`insertText: "${str}"`)
-    e.clipboardData = { getData: () => str }
-    t.dispatchEvent(e)
+    pasteTerminalText(this.window.document, str)
     this.state.isInsertedText = str
   }
   Ptt.cache = this

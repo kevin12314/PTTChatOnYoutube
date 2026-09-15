@@ -3,8 +3,8 @@ const assert = require('assert')
 const vm = require('vm')
 const source = fs.readFileSync('src/ptt/terminalAdapter.js', 'utf8').replace(/export function /g, 'function ')
 const sandbox = { module: { exports: {} } }
-vm.runInNewContext(source + '\nmodule.exports = { readTerminalRows, bindTerminalUpdates, flushPendingTerminalUpdate }', sandbox)
-const { readTerminalRows, bindTerminalUpdates, flushPendingTerminalUpdate } = sandbox.module.exports
+vm.runInNewContext(source + '\nmodule.exports = { readTerminalRows, bindTerminalUpdates, flushPendingTerminalUpdate, pasteTerminalText }', sandbox)
+const { readTerminalRows, bindTerminalUpdates, flushPendingTerminalUpdate, pasteTerminalText } = sandbox.module.exports
 const rows = ['請輸入代號，或以 guest 參觀，或以 new 註冊', '中文測試']
 const doc = { querySelectorAll: () => rows.map(textContent => ({ textContent })) }
 assert.deepStrictEqual(Array.from(readTerminalRows({}, doc)), rows)
@@ -34,6 +34,7 @@ page.console.log('view update')
 assert.strictEqual(updates, 1)
 page.app = {
   getPlugin: id => {
+    if (id === 'login_assist') return undefined
     assert.strictEqual(id, 'auto_login')
     return {
       hide: () => { hidden++ },
@@ -95,3 +96,35 @@ assert.strictEqual(notifications, 2, 'Deliver cursor-only updates in hidden ifra
 hiddenBuffer.changed = true
 flushPendingTerminalUpdate(hiddenBuffer)
 assert.strictEqual(notifications, 3, 'Subsequent polling responses continue to be delivered')
+
+// Current terminals use the renamed plugin, without an auto_login alias.
+let assistDisabled = false
+page.app.getPlugin = id => {
+  assert.strictEqual(id, 'login_assist')
+  return { hide () {}, setEnabled (enabled, persist) { assistDisabled = !enabled && !persist } }
+}
+bindTerminalUpdates(page, () => {})
+assert.strictEqual(assistDisabled, true)
+cleanup()
+
+// Simulate both legacy input listeners and the current document listener.
+let inputPastes = 0
+let documentPastes = 0
+const pasteDocument = {
+  defaultView: { CustomEvent: class {
+    constructor (type, options) { this.type = type; Object.assign(this, options) }
+  } },
+  querySelector: selector => {
+    assert.strictEqual(selector, '#t')
+    return { dispatchEvent (event) {
+      assert.strictEqual(event.type, 'paste')
+      assert.strictEqual(event.cancelable, true)
+      assert.strictEqual(event.clipboardData.getData('text/plain'), 'test\n')
+      inputPastes++
+      if (event.bubbles) documentPastes++
+    } }
+  }
+}
+pasteTerminalText(pasteDocument, 'test\n')
+assert.strictEqual(inputPastes, 1)
+assert.strictEqual(documentPastes, 1, 'Paste must reach the document listener')
