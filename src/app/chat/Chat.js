@@ -229,7 +229,7 @@ export default {
         if (this.setNewComment !== '') {
           this.msg.PostMessage('setNewcomment', this.setNewComment)
           this.$store.dispatch('setNewcomment', '')
-        } else this.msg.PostMessage('getCommentByAnySearch', { key: this.post.key, board: this.post.board, startLine: this.post.lastEndLine })
+        } else this.msg.PostMessage('getCommentByAnySearch', { key: this.post.key, board: this.post.board, startLine: this.post.lastEndLine, background: true })
       }
     }, 340)
     // 定時滾動

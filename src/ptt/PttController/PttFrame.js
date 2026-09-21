@@ -31,9 +31,19 @@ export function PttFrame () {
           this.state.frame = filter.state
           if (this.state.frame > 1) this.state.reconnectTime = 10
           this.msg.PostMessage('pttState', this.state.frame)
-          return
+          return true
         }
       }
+      // Comment dialogs replace the article footer. They are valid continuations
+      // only while posting from a recognized article, not arbitrary unknown menus.
+      const inArticle = this.state.frame === FrameState.firstPageofPost || this.state.frame === FrameState.otherPageofPost
+      if (inArticle && this.state.lock && this.postData && this.postData.commentText &&
+        this.match(/您覺得這篇文章|(.+?): (.+?) +確定\[y\/N]:|時間太近, 使用|作者本人, 使用|◆ 抱歉[,，] *禁止推薦|◆ 本文已過長, 禁止快速連續推文|◆ 對不起，您的文章或推文間隔太近囉！/)) {
+        return true
+      }
+      // A partial redraw or an unrelated menu must not inherit the old state.
+      this.state.frame = FrameState.unknown
+      return false
     }
   }
 }

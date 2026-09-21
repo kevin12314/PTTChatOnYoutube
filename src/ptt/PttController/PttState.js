@@ -3,6 +3,7 @@
  * @readonly
  */
 export const FrameState = Object.freeze({
+  unknown: -1,
   login: 0,
   main: 1,
   board: 2,

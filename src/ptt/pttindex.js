@@ -11,10 +11,10 @@ export function InitPTT (messagePoster) {
     if (showAllLog) console.log('Ptt.clearScreen()')
     ptt.clearScreen()
     if (showAllLog) console.log('Ptt.frame.update()')
-    ptt.frame.update()
+    const recognizedFrame = ptt.frame.update()
     if (showAllLog) console.log('runAutoCommand()')
     const skipThisFrame = ptt.autoCommand.runAutoCommand()
-    if (!skipThisFrame) {
+    if (!skipThisFrame && recognizedFrame) {
       if (showAllLog) console.log('runCommand()')
       ptt.command.execute()
     }

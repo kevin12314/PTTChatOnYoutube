@@ -18,6 +18,8 @@ export default function ChangeLog () {
     const changeLogInfo = {}
 
     changeLogInfo.v_4_5 = new Info()
+    changeLogInfo.v_4_5.版本.push('4.5.1：改善搜尋文章時的畫面辨識，畫面不明或同步更新尚未完成時暫停後續指令，並修正文章標題比對失效的問題。')
+    changeLogInfo.v_4_5.版本.push('4.5.1：取得最新推文期間搜尋另一篇文章，會保留最後一次手動搜尋並於目前操作完成後自動切換，避免第一次搜尋沒有反應；背景更新不會覆蓋待執行的搜尋。')
     changeLogInfo.v_4_5.HoloDex.push('4.5.0：HoloDex 舊版側欄模式連線設定新增套件寬度輸入，舊版側欄模式可自行調整並立即套用。')
     changeLogInfo.v_4_5.HoloDex.push('4.5.0：HoloDex 舊版顯示模式展開 PTT 時，頂部選單不會跟著位移。')
     changeLogInfo.v_4_5.HoloDex.push('4.5.0：修正 HoloDex 定時讀取推文時，PTT 終端機搶走推文輸入框焦點，導致輸入中斷的問題。')

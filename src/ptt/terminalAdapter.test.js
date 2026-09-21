@@ -68,6 +68,15 @@ handlers['cursor-move']()
 assert.strictEqual(pendingUpdate, scheduled)
 pendingUpdate()
 assert.strictEqual(updates, 4)
+// A queued update must not consume a newer, incomplete synchronized redraw.
+handlers.viewUpdate()
+page.app.buf.inSyncUpdate = true
+pendingUpdate()
+assert.strictEqual(updates, 4)
+page.app.buf.inSyncUpdate = false
+handlers.viewUpdate()
+pendingUpdate()
+assert.strictEqual(updates, 5)
 handlers['cursor-move']()
 cleanup()
 assert.strictEqual(pendingUpdate, null)
@@ -111,18 +120,22 @@ cleanup()
 let inputPastes = 0
 let documentPastes = 0
 const pasteDocument = {
-  defaultView: { CustomEvent: class {
-    constructor (type, options) { this.type = type; Object.assign(this, options) }
-  } },
+  defaultView: {
+    CustomEvent: class {
+      constructor (type, options) { this.type = type; Object.assign(this, options) }
+    }
+  },
   querySelector: selector => {
     assert.strictEqual(selector, '#t')
-    return { dispatchEvent (event) {
-      assert.strictEqual(event.type, 'paste')
-      assert.strictEqual(event.cancelable, true)
-      assert.strictEqual(event.clipboardData.getData('text/plain'), 'test\n')
-      inputPastes++
-      if (event.bubbles) documentPastes++
-    } }
+    return {
+      dispatchEvent (event) {
+        assert.strictEqual(event.type, 'paste')
+        assert.strictEqual(event.cancelable, true)
+        assert.strictEqual(event.clipboardData.getData('text/plain'), 'test\n')
+        inputPastes++
+        if (event.bubbles) documentPastes++
+      }
+    }
   }
 }
 pasteTerminalText(pasteDocument, 'test\n')

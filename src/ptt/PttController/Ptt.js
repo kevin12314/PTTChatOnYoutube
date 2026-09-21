@@ -89,6 +89,7 @@ export function Ptt (msg) {
     this.runTask()
   }
   this.removeAllTasks = () => {
+    this.pendingSearch = null
     this.taskManager.reset()
     this.unlock()
   }
@@ -102,6 +103,10 @@ export function Ptt (msg) {
     this.command.cmd = null
     clearInterval(this.PttAliveInterval)
     this.PttAliveInterval = undefined
+    // Finish the current response and all nested endTask calls before switching.
+    if (this.pendingSearch) {
+      window.setTimeout(() => this.flushPendingSearch(), 0)
+    }
   }
   this.clearScreen = () => {
     this.state.screenUpdated = false

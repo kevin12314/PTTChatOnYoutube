@@ -16,6 +16,9 @@ export function bindTerminalUpdates (pageWindow, onUpdate) {
     // A buffer flush can emit both events. Advance the task only once.
     updateTimer = pageWindow.setTimeout(() => {
       updateTimer = null
+      // A new synchronized redraw may begin before this queued callback runs.
+      // Its closing flush will schedule another update with the complete screen.
+      if (pageWindow.app && pageWindow.app.buf && pageWindow.app.buf.inSyncUpdate) return
       onUpdate()
     }, 0)
   }

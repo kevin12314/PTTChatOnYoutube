@@ -29,8 +29,9 @@ export default function CheckIsInsideTitleInPost () {
       insideTitle = getTheFirstThreeLine.apply(this)
     }
     if (this.postData.isSamePost) {
-      if (!insideTitle === this.postData.insideTitle) {
+      if (insideTitle !== this.postData.insideTitle) {
         res.pass = false
+        return res
       }
     } else {
       this.postData.insideTitle = insideTitle
