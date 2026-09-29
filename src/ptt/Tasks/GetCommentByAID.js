@@ -46,7 +46,7 @@ function GetCommentByLine () {
   if (this.state.frame === FrameState.firstPageofPost || this.state.frame === FrameState.otherPageofPost) {
     this.insertText('q')
   }
-  this.insertText('P')
+  this.insertText('P', true)
   this.addTask(RunHandler, GetCommentByLineTaskList, recieveComments)
 }
 /**

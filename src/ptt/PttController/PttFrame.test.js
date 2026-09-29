@@ -13,6 +13,7 @@ let executed = 0
 let skip = false
 let screen = '[←]離開 [→]閱讀'
 const ptt = {
+  articleReadTimer: null,
   state: { frame: 2 },
   msg: { PostMessage () {} },
   match: pattern => pattern.exec(screen),
@@ -47,6 +48,11 @@ screen = '[←]離開 [→]閱讀'
 update()
 assert.strictEqual(ptt.state.frame, 2)
 assert.strictEqual(executed, 2, 'Resume the pending command on a recognized screen')
+
+ptt.articleReadTimer = 1
+update()
+assert.strictEqual(executed, 2, 'Repaints must wait for the scheduled article read')
+ptt.articleReadTimer = null
 
 skip = true
 update()

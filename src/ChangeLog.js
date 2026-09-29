@@ -18,6 +18,9 @@ export default function ChangeLog () {
     const changeLogInfo = {}
 
     changeLogInfo.v_4_5 = new Info()
+    changeLogInfo.v_4_5.版本.push('4.5.2：自動更新、搜尋文章與發推文後的重讀共用至少 3.1 秒的間隔，過近的重讀會延後執行，避免觸發 PTT「太過頻繁的重讀文章」提示。')
+    changeLogInfo.v_4_5.版本.push('4.5.2：推文更新的預設與最低間隔調整為 3.1 秒，較長的自訂間隔仍有效；發推文後刷新完成，會依設定重新計算下次自動更新時間。')
+    changeLogInfo.v_4_5.版本.push('4.5.2：修正推文對話框遮住文章標題時誤判並離開文章的問題。')
     changeLogInfo.v_4_5.版本.push('4.5.1：改善搜尋文章時的畫面辨識，畫面不明或同步更新尚未完成時暫停後續指令，並修正文章標題比對失效的問題。')
     changeLogInfo.v_4_5.版本.push('4.5.1：取得最新推文期間搜尋另一篇文章，會保留最後一次手動搜尋並於目前操作完成後自動切換，避免第一次搜尋沒有反應；背景更新不會覆蓋待執行的搜尋。')
     changeLogInfo.v_4_5.HoloDex.push('4.5.0：HoloDex 舊版側欄模式連線設定新增套件寬度輸入，舊版側欄模式可自行調整並立即套用。')

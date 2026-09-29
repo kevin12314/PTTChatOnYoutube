@@ -216,7 +216,7 @@ export default {
     // 註冊文章事件
     this.msg.newComment = data => {
       this.$store.dispatch('updatePost', data)
-      this.nextUpdateTime = Date.now() + Math.max(this.getCommentInterval, 2.5) * 1000
+      this.nextUpdateTime = Date.now() + Math.max(this.getCommentInterval, 3.1) * 1000
       if (this.isAutoScroll) {
         this.$nextTick(() => this.scrollToChat())
       }

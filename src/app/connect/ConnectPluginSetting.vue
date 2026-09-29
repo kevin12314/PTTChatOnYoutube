@@ -28,9 +28,9 @@
       <connect-plugin-setting-input-element
         :setting-name="'CommentInterval'"
         :description="'推文更新(s)'"
-        :default-value="2.5"
+        :default-value="3.1"
         :max="360"
-        :min="2.5"
+        :min="3.1"
         :column="6"
         fixed-columns
       />

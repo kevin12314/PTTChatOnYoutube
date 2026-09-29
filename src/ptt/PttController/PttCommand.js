@@ -30,6 +30,7 @@ export function PttCommand () {
       this.command.cmd = null
     },
     execute: () => {
+      if (this.articleReadTimer != null) return
       if (!this.command.cmd) {
         this.endTask()
         return

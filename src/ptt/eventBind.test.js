@@ -9,7 +9,7 @@ const sandbox = {
   reportMode: false,
   showAllLog: false,
   document: { addEventListener () {} },
-  window: { setTimeout: fn => timers.push(fn) },
+  window: { setTimeout: fn => timers.push(fn), clearTimeout () {} },
   clearInterval () {},
   PttState: () => ({ lock: false }),
   PttMatch () {},

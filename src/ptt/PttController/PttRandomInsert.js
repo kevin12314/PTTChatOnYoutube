@@ -21,6 +21,7 @@ const insertEvent = [
  * @this {Ptt}
  */
 export function PttRandomInsert () {
+  if (this.articleReadTimer != null) return
   if (reportMode) console.log('PttRandomInsert', this.state.isInsertedText, !this.state.lock)
   if (this.state.isInsertedText.length > 0 || !this.state.lock) return
   for (let i = 0; i < insertEvent.length; i++) {

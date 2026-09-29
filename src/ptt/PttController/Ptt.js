@@ -22,6 +22,8 @@ export function Ptt (msg) {
   if (showAllLog) console.log('instance Ptt')
   this.msg = msg
   this.window = window // 自動
+  this.articleReadTimer = null
+  this.lastArticleReadTime = null
 
   /** @type {PttState} */
   this.state = PttState()
@@ -100,6 +102,8 @@ export function Ptt (msg) {
   this.unlock = () => {
     if (reportMode) console.log('Ptt unlock')
     this.state.lock = false
+    window.clearTimeout(this.articleReadTimer)
+    this.articleReadTimer = null
     this.command.cmd = null
     clearInterval(this.PttAliveInterval)
     this.PttAliveInterval = undefined
@@ -112,7 +116,21 @@ export function Ptt (msg) {
     this.state.screenUpdated = false
     this.state.screen = []
   }
-  this.insertText = str => {
+  // Mark only article reads; comment text can contain literal r/P characters.
+  this.insertText = (str, readsArticle = false) => {
+    if (readsArticle) {
+      const remaining = this.lastArticleReadTime === null ? 0 : this.lastArticleReadTime + 3100 - Date.now()
+      if (remaining > 0) {
+        if (this.articleReadTimer !== null) return
+        this.articleReadTimer = window.setTimeout(() => {
+          this.articleReadTimer = null
+          this.insertText(str, true)
+        }, remaining)
+        return
+      }
+      this.lastArticleReadTime = Date.now()
+      this.state.lastUpdateTime = Date.now()
+    }
     if (reportMode) console.log(`insertText: "${str}"`)
     pasteTerminalText(this.window.document, str, unsafeWindow)
     this.state.isInsertedText = str

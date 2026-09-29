@@ -18,7 +18,7 @@ export default function SetNewComment () {
     if (result) {
       if (showAllLog)console.log('本文已過長', result)
       this.msg.PostMessage('alert', { type: 0, msg: forbidden ? 'PTT 拒絕推文：抱歉，禁止推薦。' : '推文遭暫時禁止。' })
-      this.insertText('\nrG')
+      this.insertText('\nrG', true)
       this.postData.TrySetNewComment = 100
       return res
     }
@@ -30,7 +30,7 @@ export default function SetNewComment () {
       this.postData.commentText = ''
       this.recieveData.commentedText = commentCheck[2]
       this.msg.PostMessage('alert', { type: 2, msg: '推文成功。' })
-      this.insertText('y\nr')
+      this.insertText('y\nr', true)
       this.postData.TrySetNewComment = 100
       return res
     }

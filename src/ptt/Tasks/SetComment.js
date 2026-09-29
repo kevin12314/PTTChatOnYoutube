@@ -12,9 +12,16 @@ const setCommentTaskList = [
   CheckIsLogined,
   CheckIsInBoard,
   CheckIsCurrectPost,
-  CheckIsInsideTitleInPost,
-  SetNewComment
+  CheckIsInsideTitleInPost
 ]
+/**
+ * @this {Ptt}
+ */
+function startPosting () {
+  // Once the article is verified, dialogs belong to the posting handler.
+  // Rechecking a title hidden by a dialog can send qq out of the article.
+  this.addTask(RunHandler, [SetNewComment], recieveNewComment)
+}
 /**
  * @this {Ptt}
  */
@@ -46,7 +53,8 @@ export default function SetComment (pushtext) {
     trytime--
   }
   this.postData.commentText = addedtext
+  this.postData.TrySetNewComment = 0
   this.recieveData = new RecieveData()
-  this.addTask(RunHandler, setCommentTaskList, recieveNewComment)
+  this.addTask(RunHandler, setCommentTaskList, startPosting)
   this.endTask()
 }

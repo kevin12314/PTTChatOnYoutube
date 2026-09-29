@@ -47,7 +47,7 @@ function recieveComments () {
 function GetCommentByLine () {
   if (showAllLog) console.log('GetCommentByLine')
   if (this.state.frame === FrameState.otherPageofPost) {
-    this.insertText('qr')
+    this.insertText('qr', true)
   }
   this.addTask(RunHandler, GetCommentByLineTaskList, recieveComments)
   this.endTask()
@@ -80,6 +80,6 @@ export default function (data) {
   this.addTask(GetCommentByLine)
   this.msg.PostMessage('alert', { type: 1, msg: '文章讀取中。' })
   const res = CheckIsEndInPost.apply(this)
-  if (res.pass && !(this.state.frame === FrameState.firstPageofPost)) this.insertText('qr')
+  if (res.pass && !(this.state.frame === FrameState.firstPageofPost)) this.insertText('qr', true)
   this.command.set(() => { this.endTask() })
 }

@@ -12,6 +12,8 @@ export function InitPTT (messagePoster) {
     ptt.clearScreen()
     if (showAllLog) console.log('Ptt.frame.update()')
     const recognizedFrame = ptt.frame.update()
+    // A terminal repaint must not advance handlers before a deferred read.
+    if (ptt.articleReadTimer !== null) return
     if (showAllLog) console.log('runAutoCommand()')
     const skipThisFrame = ptt.autoCommand.runAutoCommand()
     if (!skipThisFrame && recognizedFrame) {
