@@ -16,7 +16,7 @@ const ptt = {
   articleReadTimer: null,
   state: { frame: 2 },
   msg: { PostMessage () {} },
-  match: pattern => pattern.exec(screen),
+  match: pattern => screen.split('\n').map(row => pattern.exec(row)).find(Boolean),
   clearScreen () {},
   autoCommand: { runAutoCommand: () => skip },
   command: { execute: () => { executed++ } }
@@ -48,6 +48,39 @@ screen = '[←]離開 [→]閱讀'
 update()
 assert.strictEqual(ptt.state.frame, 2)
 assert.strictEqual(executed, 2, 'Resume the pending command on a recognized screen')
+
+// The board in the reported screenshot starts with Read, without Leave.
+// Exercise recognition and dispatch of the actual pending navigation handler.
+const mainHandlerSource = fs.readFileSync('src/ptt/Tasks/Handlers/CheckIsInMain.js', 'utf8')
+  .replace(/^import .*$/gm, '').replace('export default function', 'function')
+vm.runInNewContext(mainHandlerSource, sandbox)
+const navigationInputs = []
+ptt.insertText = text => navigationInputs.push(text)
+const countExecution = ptt.command.execute
+ptt.command.execute = () => {
+  const result = sandbox.CheckIsInMain.call(ptt)
+  if (!result.pass) result.callback.call(ptt)
+}
+screen = [
+  '【板主:daniel0527/arrenwu/motw1999/jerry7..】                  看板《C_Chat》',
+  '[→]閱讀 [z]精華區 [Tab]文摘 [s]選擇看板 [b]進板 [i]看板設定 [^X]課表 [/]搜尋',
+  '  編號   日 期 作 者          文 章 標 題',
+  '文章列表 (A)發表 (Y)回應 (^X)推文 (d)刪除 (→)閱讀 (b)進板 (←)離開 (h)說明'
+].join('\n')
+ptt.state.frame = 1
+update()
+assert.strictEqual(ptt.state.frame, 2, 'Recognize the reported board instead of retaining the main state')
+assert.deepStrictEqual(navigationInputs, ['q'], 'The pending return-to-main command must resume')
+ptt.command.execute = countExecution
+
+// Similar text inside an article or a partial menu must remain unknown.
+for (const text of ['推 user: [→]閱讀 [z]精華區 [Tab]文摘', '[→]閱讀', '[→]閱讀 [z]精華區']) {
+  screen = text
+  update()
+  assert.strictEqual(ptt.state.frame, -1)
+  assert.strictEqual(executed, 2)
+}
+screen = '[←]離開 [→]閱讀'
 
 ptt.articleReadTimer = 1
 update()

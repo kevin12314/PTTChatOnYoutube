@@ -18,6 +18,7 @@ export default function ChangeLog () {
     const changeLogInfo = {}
 
     changeLogInfo.v_4_5 = new Info()
+    changeLogInfo.v_4_5.版本.push('4.5.3：支援以「[→]閱讀 [z]精華區 [Tab]文摘」開頭的看板畫面，修正搜尋文章停在看板列表並誤報「Ptt無回應」的問題。')
     changeLogInfo.v_4_5.版本.push('4.5.2：自動更新、搜尋文章與發推文後的重讀共用至少 3.1 秒的間隔，過近的重讀會延後執行，避免觸發 PTT「太過頻繁的重讀文章」提示。')
     changeLogInfo.v_4_5.版本.push('4.5.2：推文更新的預設與最低間隔調整為 3.1 秒，較長的自訂間隔仍有效；發推文後刷新完成，會依設定重新計算下次自動更新時間。')
     changeLogInfo.v_4_5.版本.push('4.5.2：修正推文對話框遮住文章標題時誤判並離開文章的問題。')
