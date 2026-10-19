@@ -73,7 +73,8 @@ export function PttAutoCommand () {
       { reg: /【精華文章】/, input: 'q' },
       { reg: /【看板列表】/, input: 'q' },
       { reg: /【分類看板】/, input: 'q' },
-      { reg: /【電子郵件】/, input: 'e' },
+      // With unread mail the main menu cursor defaults to (M)ail, so a stray Enter lands here.
+      { reg: /【電子郵件】|【私人信件區】/, input: 'e' },
       { reg: /【聊天說話】/, input: 'e' },
       { reg: /【個人設定】/, input: 'e' },
       { reg: /【工具程式】/, input: 'e' },
