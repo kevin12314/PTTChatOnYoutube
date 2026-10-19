@@ -17,6 +17,12 @@ export default function ChangeLog () {
   function AddChangeLogInfo () {
     const changeLogInfo = {}
 
+    changeLogInfo.v_4_6 = new Info()
+    changeLogInfo.v_4_6.版本.push('4.6.0：加快 X/Twitter 貼文預覽的顯示速度，改用單一輕量請求同時取得內文、作者、頭像與圖片，並在滑鼠停留期間預先載入。')
+    changeLogInfo.v_4_6.版本.push('4.6.0：X/Twitter 影片貼文的預覽會在縮圖顯示「▶ 片長」標記；GIF 貼文會自動靜音循環播放並顯示「GIF」標記。')
+    changeLogInfo.v_4_6.版本.push('4.6.0：X/Twitter 長文貼文的預覽會載入完整內容；無法取得時會以「…」與提示說明僅顯示部分內容，過長的內文會限制行數。')
+    changeLogInfo.v_4_6.版本.push('4.6.0：修正有未讀信件時登入，畫面停在「私人信件區」並誤報「Ptt無回應」的問題。')
+    changeLogInfo.v_4_6.版本.push('4.6.0：首次使用新版貼文預覽時，Tampermonkey 會詢問是否允許連線至 cdn.syndication.twimg.com、video.twimg.com 與 api.fxtwitter.com，請選擇「總是允許」。')
     changeLogInfo.v_4_5 = new Info()
     changeLogInfo.v_4_5.版本.push('4.5.3：修正搜尋文章停在看板列表並誤報「Ptt無回應」的問題。')
     changeLogInfo.v_4_5.版本.push('4.5.2：自動更新、搜尋文章與發推文後的重讀共用至少 3.1 秒的間隔，過近的重讀會延後執行，避免觸發 PTT「太過頻繁的重讀文章」提示。')

@@ -131,6 +131,8 @@ export default {
       this.$_ChatElementMessage_UpdatePreviewPointer(mouseEvent)
       if (this.previewImage === this.previewSourceUrl) this.$store.dispatch('previewImage', '')
       this.previewSourceUrl = url
+      // Start fetching link data (e.g. X posts) during the hover delay instead of after it.
+      window.dispatchEvent(new CustomEvent('pttchat-preview-prefetch', { detail: { url } }))
       this.previewTimer = window.setTimeout(() => {
         if (this.previewSourceUrl === url) this.$store.dispatch('previewImage', url)
         this.previewTimer = null

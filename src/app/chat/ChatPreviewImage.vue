@@ -38,14 +38,35 @@
         <div
           v-if="tweetCard.text"
           class="ptt-chat-preview-card__text"
+          :class="{ 'ptt-chat-preview-card__text--with-image': tweetCard.image }"
         >
-          {{ tweetCard.text }}
+          {{ tweetCard.text }}{{ tweetCard.truncated ? '…' : '' }}
+        </div>
+        <div
+          v-if="tweetCard.truncated"
+          class="ptt-chat-preview-card__meta ptt-chat-preview-card__truncated"
+        >
+          {{ tweetCard.fullTextLoading ? '載入完整長文中...' : '長文僅顯示部分內容，完整內容請開啟連結。' }}
         </div>
         <div
           v-if="tweetCard.image"
           class="ptt-chat-preview-card__image-wrap"
         >
+          <video
+            v-if="tweetCard.gifSrc"
+            ref="cardGif"
+            class="ptt-chat-preview-card__image"
+            :src="tweetCard.gifSrc"
+            :poster="tweetCard.image"
+            autoplay
+            loop
+            muted
+            playsinline
+            @loadeddata="handleCardGifLoad"
+            @error="handleCardGifError"
+          />
           <img
+            v-else
             ref="cardImage"
             class="ptt-chat-preview-card__image"
             :src="tweetCard.image"
@@ -53,6 +74,18 @@
             @load="handleCardLoad"
             @error="handleCardImageError"
           >
+          <div
+            v-if="tweetCard.mediaType === 'video'"
+            class="ptt-chat-preview-card__media-badge"
+          >
+            ▶{{ tweetCard.videoDuration > 0 ? ' ' + formatVideoDuration(tweetCard.videoDuration) : '' }}
+          </div>
+          <div
+            v-else-if="tweetCard.mediaType === 'animated_gif'"
+            class="ptt-chat-preview-card__media-badge"
+          >
+            GIF
+          </div>
           <div
             v-if="tweetCard.mediaCount > 1"
             class="ptt-chat-preview-card__image-count"
@@ -97,6 +130,12 @@ const MEEE_PAGE_HOSTS = ['meee.com.tw', 'www.meee.com.tw']
 const MEEE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
 const TWITTER_HOSTS = ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com', 'mobile.twitter.com']
 const TWEET_OEMBED_ENDPOINT = 'https://publish.twitter.com/oembed'
+// Lightweight JSON endpoint used by X embeds: text, author, avatar and media in a single small response.
+const TWEET_SYNDICATION_ENDPOINT = 'https://cdn.syndication.twimg.com/tweet-result'
+// Third-party mirror used only for long posts (note tweets): X's own endpoints return them truncated.
+const TWEET_FULL_TEXT_ENDPOINT = 'https://api.fxtwitter.com/status/'
+const TWEET_PREFETCH_EVENT = 'pttchat-preview-prefetch'
+const TWEET_GIF_CACHE_LIMIT = 20
 const PREVIEW_OFFSET = 12
 const VIEWPORT_PADDING = 8
 const DEFAULT_PREVIEW_SIZE = 400
@@ -110,6 +149,13 @@ const EMPTY_TWEET_CARD = Object.freeze({
   description: '',
   image: '',
   mediaCount: 0,
+  mediaType: '',
+  videoDuration: 0,
+  gifVideo: '',
+  gifSrc: '',
+  truncated: false,
+  fullTextLoading: false,
+  complete: false,
   error: ''
 })
 
@@ -135,7 +181,8 @@ export default {
       tweetPreviewCache: {},
       tweetAvatarCache: {},
       tweetMediaCache: {},
-      activeTweetRequestUrl: ''
+      activeTweetRequestUrl: '',
+      prefetchHandler: null
     }
   },
 
@@ -216,6 +263,14 @@ export default {
       }
     }
   },
+  created () {
+    // In-flight tweet requests keyed by canonical URL, so hover prefetch and the real preview share one request.
+    this.tweetPendingRequests = {}
+    // GIF mp4 blob URLs keyed by video URL, oldest first.
+    this.tweetGifRequests = new Map()
+    // Full text of long posts keyed by canonical URL; resolves to '' when unavailable.
+    this.tweetFullTextRequests = {}
+  },
   mounted () {
     this.mouseMoveHandler = (event) => {
       this.mousex = event.clientX
@@ -226,12 +281,19 @@ export default {
       this.mousex = event.detail.x
       this.mousey = event.detail.y
     }
+    this.prefetchHandler = (event) => {
+      if (!event || !event.detail) return
+      this.prefetchTweetPreview(event.detail.url)
+    }
     document.body.addEventListener('mousemove', this.mouseMoveHandler)
     window.addEventListener('pttchat-preview-pointer', this.previewPointerHandler)
+    window.addEventListener(TWEET_PREFETCH_EVENT, this.prefetchHandler)
   },
   beforeUnmount () {
     this.previewImageUrlToken++
     this.revokePreviewBlobUrl()
+    this.tweetGifRequests.forEach(request => request.then(blobUrl => { if (blobUrl) URL.revokeObjectURL(blobUrl) }))
+    this.tweetGifRequests.clear()
     if (this.mouseMoveHandler) {
       document.body.removeEventListener('mousemove', this.mouseMoveHandler)
       this.mouseMoveHandler = null
@@ -239,6 +301,10 @@ export default {
     if (this.previewPointerHandler) {
       window.removeEventListener('pttchat-preview-pointer', this.previewPointerHandler)
       this.previewPointerHandler = null
+    }
+    if (this.prefetchHandler) {
+      window.removeEventListener(TWEET_PREFETCH_EVENT, this.prefetchHandler)
+      this.prefetchHandler = null
     }
   },
   methods: {
@@ -327,7 +393,26 @@ export default {
       this.tweetCard = {
         ...this.tweetCard,
         image: '',
-        mediaCount: 0
+        mediaCount: 0,
+        mediaType: ''
+      }
+      this.$nextTick(() => this.measureCard())
+    },
+    handleCardGifLoad () {
+      const gifElement = this.$refs.cardGif
+      if (gifElement) {
+        // Vue binds `muted` as a DOM property after insertion; re-assert it so autoplay is not blocked.
+        gifElement.muted = true
+        gifElement.play().catch(() => {})
+      }
+      this.handleCardLoad()
+    },
+    handleCardGifError () {
+      // Fall back to the static thumbnail.
+      this.tweetCard = {
+        ...this.tweetCard,
+        gifVideo: '',
+        gifSrc: ''
       }
       this.$nextTick(() => this.measureCard())
     },
@@ -385,6 +470,8 @@ export default {
         }
         this.ensureTweetAvatar(tweetUrl, this.tweetPreviewCache[tweetUrl].authorUrl)
         this.ensureTweetMedia(tweetUrl)
+        this.ensureTweetGif(tweetUrl)
+        this.ensureTweetFullText(tweetUrl)
         this.$nextTick(() => this.measureCard())
         return
       }
@@ -397,28 +484,14 @@ export default {
       this.$nextTick(() => this.measureCard())
 
       try {
-        const previewData = await this.fetchTweetPreview(tweetUrl)
+        const nextCard = await this.requestTweetPreview(tweetUrl)
         if (this.activeTweetRequestUrl !== tweetUrl || this.getTweetCanonicalUrl(this.previewImage) !== tweetUrl) return
 
-        const nextCard = {
-          visible: true,
-          loading: false,
-          author: previewData.author,
-          authorUrl: previewData.authorUrl,
-          avatar: previewData.avatar || '',
-          text: previewData.text,
-          description: previewData.description,
-          image: previewData.image,
-          mediaCount: previewData.mediaCount || 0,
-          error: previewData.text || previewData.image ? '' : '目前無法解析這則貼文預覽。'
-        }
-        this.tweetPreviewCache = {
-          ...this.tweetPreviewCache,
-          [tweetUrl]: nextCard
-        }
         this.tweetCard = nextCard
-        this.ensureTweetAvatar(tweetUrl, previewData.authorUrl)
+        this.ensureTweetAvatar(tweetUrl, nextCard.authorUrl)
         this.ensureTweetMedia(tweetUrl)
+        this.ensureTweetGif(tweetUrl)
+        this.ensureTweetFullText(tweetUrl)
         this.$nextTick(() => this.measureCard())
       } catch (error) {
         if (this.activeTweetRequestUrl !== tweetUrl || this.getTweetCanonicalUrl(this.previewImage) !== tweetUrl) return
@@ -431,15 +504,146 @@ export default {
         this.$nextTick(() => this.measureCard())
       }
     },
+    prefetchTweetPreview (text) {
+      const tweetUrl = this.getTweetCanonicalUrl(text)
+      if (tweetUrl === null || this.tweetPreviewCache[tweetUrl]) return
+      this.requestTweetPreview(tweetUrl).catch(() => {})
+    },
+    requestTweetPreview (tweetUrl) {
+      if (this.tweetPendingRequests[tweetUrl]) return this.tweetPendingRequests[tweetUrl]
+
+      const request = this.fetchTweetPreview(tweetUrl).then(previewData => {
+        const nextCard = {
+          visible: true,
+          loading: false,
+          author: previewData.author,
+          authorUrl: previewData.authorUrl,
+          avatar: previewData.avatar || '',
+          text: previewData.text,
+          description: previewData.description,
+          image: previewData.image,
+          mediaCount: previewData.mediaCount || 0,
+          mediaType: previewData.mediaType || '',
+          videoDuration: previewData.videoDuration || 0,
+          gifVideo: previewData.gifVideo || '',
+          gifSrc: '',
+          truncated: Boolean(previewData.truncated),
+          fullTextLoading: Boolean(previewData.truncated),
+          complete: Boolean(previewData.complete),
+          error: previewData.text || previewData.image ? '' : '目前無法解析這則貼文預覽。'
+        }
+        this.tweetPreviewCache = {
+          ...this.tweetPreviewCache,
+          [tweetUrl]: nextCard
+        }
+        this.preloadTweetImages(nextCard)
+        if (nextCard.gifVideo) this.resolveTweetGif(nextCard.gifVideo)
+        if (nextCard.truncated) this.resolveTweetFullText(tweetUrl)
+        return nextCard
+      }).finally(() => {
+        delete this.tweetPendingRequests[tweetUrl]
+      })
+
+      this.tweetPendingRequests[tweetUrl] = request
+      return request
+    },
+    async ensureTweetFullText (tweetUrl) {
+      const cached = this.tweetPreviewCache[tweetUrl]
+      if (!cached || !cached.truncated) return
+
+      const fullText = await this.resolveTweetFullText(tweetUrl)
+      const update = fullText
+        ? { text: fullText, truncated: false, fullTextLoading: false }
+        : { fullTextLoading: false }
+
+      if (this.tweetPreviewCache[tweetUrl]) {
+        this.tweetPreviewCache = {
+          ...this.tweetPreviewCache,
+          [tweetUrl]: {
+            ...this.tweetPreviewCache[tweetUrl],
+            ...update
+          }
+        }
+      }
+
+      if (this.activeTweetRequestUrl === tweetUrl && this.getTweetCanonicalUrl(this.previewImage) === tweetUrl) {
+        this.tweetCard = {
+          ...this.tweetCard,
+          ...update
+        }
+        this.$nextTick(() => this.measureCard())
+      }
+    },
+    resolveTweetFullText (tweetUrl) {
+      if (!this.tweetFullTextRequests[tweetUrl]) {
+        const tweetId = tweetUrl.split('/').pop()
+        this.tweetFullTextRequests[tweetUrl] = this.gmRequest(TWEET_FULL_TEXT_ENDPOINT + tweetId, 'json', { anonymous: true })
+          .then(response => {
+            const text = response && response.tweet && response.tweet.text
+            return text ? this.normalizeTweetText(text) : ''
+          })
+          .catch(() => '')
+      }
+      return this.tweetFullTextRequests[tweetUrl]
+    },
+    async ensureTweetGif (tweetUrl) {
+      const gifVideo = this.tweetCard.gifVideo
+      if (!gifVideo || this.tweetCard.gifSrc) return
+
+      const gifSrc = await this.resolveTweetGif(gifVideo)
+      if (!gifSrc || this.activeTweetRequestUrl !== tweetUrl || this.tweetCard.gifVideo !== gifVideo) return
+
+      this.tweetCard = {
+        ...this.tweetCard,
+        gifSrc
+      }
+      this.$nextTick(() => this.measureCard())
+    },
+    resolveTweetGif (gifVideo) {
+      // video.twimg.com rejects requests with a foreign Referer and <video> cannot opt out,
+      // so download through GM_xmlhttpRequest (no page Referer) and play a blob URL.
+      if (this.tweetGifRequests.has(gifVideo)) return this.tweetGifRequests.get(gifVideo)
+
+      const request = this.gmRequest(gifVideo, 'blob', { anonymous: true })
+        .then(blob => URL.createObjectURL(blob))
+        .catch(() => {
+          this.tweetGifRequests.delete(gifVideo)
+          return ''
+        })
+      this.tweetGifRequests.set(gifVideo, request)
+
+      if (this.tweetGifRequests.size > TWEET_GIF_CACHE_LIMIT) {
+        const [oldestUrl, oldestRequest] = this.tweetGifRequests.entries().next().value
+        this.tweetGifRequests.delete(oldestUrl)
+        oldestRequest.then(blobUrl => {
+          if (blobUrl && this.tweetCard.gifSrc !== blobUrl) URL.revokeObjectURL(blobUrl)
+        })
+      }
+      return request
+    },
+    preloadTweetImages (card) {
+      // Warm the browser cache so the avatar and media appear together with the text.
+      [card.avatar, card.image].filter(Boolean).forEach(src => {
+        const image = new Image()
+        image.referrerPolicy = 'no-referrer'
+        image.src = src
+      })
+    },
     async fetchTweetPreview (tweetUrl) {
+      try {
+        const syndicationResponse = await this.gmRequest(this.getTweetSyndicationUrl(tweetUrl), 'json', { anonymous: true })
+        const parsedFromSyndication = this.parseTweetPreviewFromSyndication(syndicationResponse)
+        if (parsedFromSyndication.text || parsedFromSyndication.image) return parsedFromSyndication
+      } catch (error) {
+        // Syndication may reject some tweets (deleted, age-restricted); fall back to oEmbed.
+      }
+
       const oembedUrl = TWEET_OEMBED_ENDPOINT + '?omit_script=true&url=' + encodeURIComponent(tweetUrl)
       try {
         const oembedResponse = await this.gmRequest(oembedUrl, 'json')
         const parsedFromOembed = this.parseTweetPreviewFromOembed(oembedResponse)
-        if (parsedFromOembed.text || parsedFromOembed.author) {
-          parsedFromOembed.avatar = await this.resolveTweetAuthorAvatar(parsedFromOembed.authorUrl)
-          return parsedFromOembed
-        }
+        // Avatar is resolved afterwards by ensureTweetAvatar so the text is not blocked by the profile page.
+        if (parsedFromOembed.text || parsedFromOembed.author) return parsedFromOembed
       } catch (error) {
         // Local/dev pages may be blocked by publish.twitter.com CORS changes; fall back to tweet HTML.
       }
@@ -448,9 +652,64 @@ export default {
       const parsedFromHtml = this.parseTweetPreviewFromHtml(html)
       return parsedFromHtml
     },
+    getTweetSyndicationUrl (tweetUrl) {
+      const tweetId = tweetUrl.split('/').pop()
+      // Same token derivation as X's own embed widget.
+      const token = ((Number(tweetId) / 1e15) * Math.PI).toString(36).replace(/(0+|\.)/g, '')
+      return TWEET_SYNDICATION_ENDPOINT + '?id=' + tweetId + '&lang=zh-tw&token=' + token
+    },
+    parseTweetPreviewFromSyndication (response) {
+      const empty = { author: '', authorUrl: '', avatar: '', text: '', description: '', image: '', mediaCount: 0, truncated: false, complete: false }
+      if (!response || !response.user) return empty
+
+      const user = response.user
+      const entities = response.entities || {}
+      let text = response.text || ''
+      ;(entities.media || []).forEach(media => {
+        if (media.url) text = text.split(media.url).join('')
+      })
+      ;(entities.urls || []).forEach(link => {
+        if (link.url && link.expanded_url) text = text.split(link.url).join(link.expanded_url)
+      })
+
+      const mediaDetails = (response.mediaDetails || []).filter(media => media.media_url_https)
+      const firstMedia = mediaDetails[0] || {}
+      const videoInfo = firstMedia.video_info || {}
+      const avatar = user.profile_image_url_https || ''
+
+      return {
+        author: user.name || '',
+        authorUrl: user.screen_name ? 'https://x.com/' + user.screen_name : '',
+        avatar: avatar.replace(/_normal(?=\.[a-z0-9]+(?:[?#].*)?$)/i, '_200x200'),
+        text: this.normalizeTweetText(text),
+        description: '',
+        image: firstMedia.media_url_https || '',
+        mediaCount: mediaDetails.length,
+        truncated: Boolean(response.note_tweet),
+        mediaType: firstMedia.type || '',
+        videoDuration: firstMedia.type === 'video' ? (videoInfo.duration_millis || 0) : 0,
+        gifVideo: firstMedia.type === 'animated_gif' ? this.pickSmallestMp4(videoInfo.variants) : '',
+        complete: true
+      }
+    },
+    pickSmallestMp4 (variants) {
+      const mp4List = (variants || [])
+        .filter(variant => variant.content_type === 'video/mp4' && variant.url)
+        .sort((a, b) => (a.bitrate || 0) - (b.bitrate || 0))
+      return mp4List.length > 0 ? mp4List[0].url : ''
+    },
+    formatVideoDuration (millis) {
+      const totalSeconds = Math.round(millis / 1000)
+      const hours = Math.floor(totalSeconds / 3600)
+      const minutes = Math.floor((totalSeconds % 3600) / 60)
+      const seconds = String(totalSeconds % 60).padStart(2, '0')
+      if (hours > 0) return hours + ':' + String(minutes).padStart(2, '0') + ':' + seconds
+      return minutes + ':' + seconds
+    },
     async ensureTweetAvatar (tweetUrl, authorUrl) {
       if (!authorUrl) return
-      if (this.tweetPreviewCache[tweetUrl] && this.tweetPreviewCache[tweetUrl].avatar) {
+      const cached = this.tweetPreviewCache[tweetUrl]
+      if (cached && (cached.avatar || cached.complete)) {
         return
       }
 
@@ -477,7 +736,8 @@ export default {
     },
     async ensureTweetMedia (tweetUrl) {
       if (!tweetUrl) return
-      if (this.tweetPreviewCache[tweetUrl] && this.tweetPreviewCache[tweetUrl].image) return
+      const cached = this.tweetPreviewCache[tweetUrl]
+      if (cached && (cached.image || cached.complete)) return
 
       const media = await this.resolveTweetMedia(tweetUrl)
       if (!media.image) return
@@ -556,11 +816,11 @@ export default {
           anonymous: Boolean(options.anonymous),
           responseType,
           headers: {
-            Accept: responseType === 'json' ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml'
+            Accept: this.getAcceptHeader(responseType)
           },
           onload: response => {
             if (response.status >= 200 && response.status < 300) {
-              if (responseType === 'json') resolve(response.response)
+              if (responseType === 'json' || responseType === 'blob') resolve(response.response)
               else resolve(response.responseText || response.response || '')
               return
             }
@@ -571,17 +831,24 @@ export default {
         })
       })
     },
+    getAcceptHeader (responseType) {
+      if (responseType === 'json') return 'application/json, text/plain, */*'
+      if (responseType === 'blob') return '*/*'
+      return 'text/html,application/xhtml+xml'
+    },
     async fetchRequest (url, responseType, options = {}) {
       const response = await fetch(url, {
         method: 'GET',
         credentials: options.anonymous ? 'omit' : 'same-origin',
+        referrerPolicy: options.anonymous ? 'no-referrer' : 'strict-origin-when-cross-origin',
         headers: {
-          Accept: responseType === 'json' ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml'
+          Accept: this.getAcceptHeader(responseType)
         }
       })
 
       if (!response.ok) throw new Error('Request failed with status ' + response.status)
       if (responseType === 'json') return await response.json()
+      if (responseType === 'blob') return await response.blob()
       return await response.text()
     },
     parseTweetPreviewFromHtml (html) {
@@ -946,7 +1213,20 @@ export default {
 }
 
 .ptt-chat-preview-card__text {
+  display: -webkit-box;
   margin-bottom: 8px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 16;
+}
+
+.ptt-chat-preview-card__text--with-image {
+  -webkit-line-clamp: 8;
+}
+
+.ptt-chat-preview-card__truncated {
+  margin-bottom: 8px;
+  font-size: 12px;
 }
 
 .ptt-chat-preview-card__description,
@@ -973,11 +1253,20 @@ export default {
   border-radius: 8px;
 }
 
+.ptt-chat-preview-card__media-badge {
+  bottom: 11px;
+  left: 11px;
+}
+
 .ptt-chat-preview-card__image-count {
-  position: absolute;
   top: 11px;
   right: 11px;
   min-width: 40px;
+}
+
+.ptt-chat-preview-card__media-badge,
+.ptt-chat-preview-card__image-count {
+  position: absolute;
   padding: 5px 10px;
   color: #fff;
   font-size: 14px;

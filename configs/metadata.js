@@ -35,7 +35,10 @@ module.exports = {
     'www.x.com',
     'twitter.com',
     'www.twitter.com',
-    'publish.twitter.com'
+    'publish.twitter.com',
+    'cdn.syndication.twimg.com',
+    'video.twimg.com',
+    'api.fxtwitter.com'
   ],
   'run-at': 'document-body',
   require: [],

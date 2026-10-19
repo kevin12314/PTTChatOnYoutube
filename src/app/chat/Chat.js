@@ -310,7 +310,7 @@ const testchat = {
       }
       let msg = ''
       let m = i + ''
-      switch (i % 9) {
+      switch (i % 12) {
         case 0:
           m += filterXSS('太神啦 https://youtu.be/23y5h8kQsv8?t=4510 太神啦 https://www.youtube.com/watch?t=1237&v=Suab3SD1rbI&feature=youtu.be')
           break
@@ -337,6 +337,15 @@ const testchat = {
           break
         case 8:
           m += filterXSS('測 X 多圖預覽 https://x.com/hologoe_ABEMA/status/2044355055042593096?s=20')
+          break
+        case 9:
+          m += filterXSS('測 X 影片預覽 https://x.com/hololivetv/status/2111759195930530107')
+          break
+        case 10:
+          m += filterXSS('測 X GIF 預覽 https://x.com/tyomateee/status/2086701581060178069')
+          break
+        case 11:
+          m += filterXSS('測 X 長文預覽 https://x.com/hololive_dreams/status/2112056987676737597?s=20')
           break
         default:
           break
