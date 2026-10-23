@@ -16,7 +16,8 @@ export function PttFrame () {
     filters: [
       { reg: /請輸入代號，或以 guest 參觀，或以 new 註冊/, state: FrameState.login },
       { reg: /上方為使用者心情點播留言區|【 精華公佈欄 】/, state: FrameState.main },
-      { reg: /《.+》看板設定/, state: FrameState.boardInfo },
+      // 新版 PTT 的看板資訊頁為「看板設定與管理」選單，舊版為「《板名》看板設定」
+      { reg: /《.+》看板設定|^\s*看板設定與管理/, state: FrameState.boardInfo },
       { reg: /^\[←\]離開 \[→\]閱讀/, state: FrameState.board },
       { reg: /^\[→\]閱讀\s+\[z\]精華區\s+\[Tab\]文摘/, state: FrameState.board },
       { reg: /目前顯示: 第 01/, state: FrameState.firstPageofPost },
